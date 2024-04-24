@@ -1,0 +1,6 @@
+@Library('gematik-jenkins-shared-library') _
+pipelineGitHubPublishSources {
+    GITHUB_PROJECT_NAME = 'api-popp'
+    GEMATIK_PROJECT_NAME = 'spezifikation/api-popp.git'
+    REMOTE_BRANCH = 'main'
+}

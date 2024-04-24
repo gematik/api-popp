@@ -1,0 +1,44 @@
+@Library('gematik-jenkins-shared-library') _
+  
+def CREDENTIAL_ID_GEMATIK_GIT = 'svc_gitlab_prod_credentials'
+def REPO_URL = createGitUrl('git/spezifikation/api-popp')
+
+pipeline {
+    options {
+        disableConcurrentBuilds()
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5')
+    }
+    agent { label 'k8-backend-small' }
+  
+    parameters {
+        string(name: 'BRANCH', defaultValue: '', description: 'Bitte den Namen des Branches angeben, dessen Stand für das Release verwendet werden soll.')
+        string(name: 'TAG_NAME', defaultValue: '', description: 'Bitte den Namen des Tags angeben, der für den Release-Commit verwendet werden soll. Der Name sollte mit Release/ReleaseBuild starten.')
+    }
+  
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: BRANCH,
+                    credentialsId: CREDENTIAL_ID_GEMATIK_GIT,
+                    url: REPO_URL
+            }
+        }
+  
+  
+        stage('Environment') {
+            stages {
+                stage('Create Release-Tag') {
+                    steps {
+                        gitCreateAndPushTag("", "${TAG_NAME}", BRANCH)
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sendEMailNotification(getEdgeSpecEMailList())
+        }
+    }
+}
