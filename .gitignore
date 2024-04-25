@@ -1,0 +1,7 @@
+# ignore IDE specific files
+.idea
+
+release.jenkinsfile
+gitHubPublish.jenkinsfile
+gitHubPull.jenkinsfile
+
