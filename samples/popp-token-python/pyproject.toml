@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "popp-token-python"
+version = "0.1.0"
+description = "Sample implementation of POPP-Token in Python"
+authors = ["Sergej Suskov <sergej.suskov@gematik.de>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+jwcrypto = "^1.5.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
