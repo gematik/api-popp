@@ -1,0 +1,13 @@
+= PoPP Samples in Python 
+
+== API Mock
+
+[source,bash]
+----
+poetry shell
+fastapi dev server.py
+
+websocat -E ws://localhost:8000/popp/api/v1/patient/proof/ehc
+# post and receive token
+curlie POST http://localhost:8000/popp/api/v1/healthcare-provider/token/code -F code=123456 
+----
