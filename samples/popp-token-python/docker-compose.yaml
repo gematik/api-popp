@@ -1,0 +1,28 @@
+services:
+  reverse-proxy:
+    image: caddy:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    configs:
+      - source: Caddyfile
+        target: /etc/caddy/Caddyfile
+    restart: always
+    depends_on:
+      - app
+    volumes:
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+
+  app:
+    image: spilikin/popp-mock
+
+configs:
+  Caddyfile:
+    content: |
+      {
+        email cloud@spilikin.dev
+      }
+      popp26.t20r.cloud {
+        reverse_proxy app:80
+      }

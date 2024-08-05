@@ -16,7 +16,7 @@ def generate_6_digit_code() -> str:
     return str(random.randint(100000, 999999))
 
 
-@app.get("/popp/api/v1/public/signing-keys")
+@app.get("/popp/api/v1/public/jwks")
 async def getJWKS():
     return jwks.export(as_dict=True)
 
