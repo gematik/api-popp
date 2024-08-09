@@ -1,6 +1,6 @@
 services:
   reverse-proxy:
-    image: caddy:latest
+    image: spilikin/zero-caddy:latest
     ports:
       - "80:80"
       - "443:443"
@@ -16,6 +16,8 @@ services:
 
   app:
     image: spilikin/popp-mock
+    volumes:
+      - ./secrets:/app/secrets
 
 configs:
   Caddyfile:
