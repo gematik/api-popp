@@ -1,0 +1,39 @@
+@startuml
+|Videosprechstunden-APP|
+start
+:wähle Arzt (Leistungserbringer);
+:starte Videosprechstunde;
+|PoPP-FdV/Kassen-APP|
+:lade OTP vom PoPP-FdV;
+if (Gültiges OTP vorhanden?) then (ja)
+  
+else (nein)
+  :gehe zu checkin in PoPP-FdV;
+endif
+
+|Videosprechstunden-APP|
+:übermittle OTP und LE-Auswahl;
+|Videosprechstunden-backend|
+:erstelle Kommunikationskanal zu Primärsystem der LEI;
+|PoPP-Client|
+:übermittle OTP;
+|PoPP-Service|
+:tausche OTP gegen PoPP-Token;
+:ermittle PoPP-Token zu OTP;
+:vervollständige PoPP-Token um Daten LEI;
+fork
+:sende signierte PoPP-Token an PoPP-Client;
+|PoPP-Client|
+:lösche OTP vom PoPP-Client;
+:verwende PoPP-Token;
+|Videosprechstunden-backend|
+:lösche OTP aus Videosprechstunden-backend;
+|Videosprechstunden-APP|
+:lösche OTP aus Videosprechstunden APP;
+fork again
+|PoPP-Service|
+:lösche OTP vom PoPP-Service;
+endfork
+stop  
+
+@enduml

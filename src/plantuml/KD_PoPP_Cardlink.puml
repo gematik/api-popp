@@ -1,0 +1,35 @@
+@startuml
+skinparam Shadowing false
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+skinparam componentStyle uml2
+
+skinparam sequence {
+    ArrowColor DodgerBlue
+    ActorBorderColor DodgerBlue
+    LifeLineBorderColor Blue
+
+    ParticipantBackgroundColor #3483eb
+    ParticipantBorderColor #3483eb
+    ParticipantFontSize 14
+    ParticipantFontColor White
+
+    ActorBackgroundColor #3483eb
+    ActorFontSize 14
+    NoteBackgroundColor #3483eb
+}
+
+hide footbox
+
+actor Versicherter as versichertergcl
+component "Cardlink-APP\n(PoPP-FdV)" as poppfdv <<Cardlink-Client>>
+component "Popp-Service" as poppservice <<PoPP-Service>>
+component PoPP-Authorization-Server {
+component "PoPP-Auth-Server" as cardlinkserver <<Cardlink Proxy>>
+}
+
+versichertergcl -> poppfdv    
+poppfdv  ->  cardlinkserver
+cardlinkserver -> poppservice
+
+@enduml

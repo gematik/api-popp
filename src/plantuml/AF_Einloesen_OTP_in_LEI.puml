@@ -1,0 +1,24 @@
+@startuml
+|PoPP-FdV/Kassen-APP|
+start
+:öffne PoPP-FdV;
+:präsentiere QR-Code;
+|PoPP-Client|
+:scanne QR-Code;
+:ermittle OTP aus QR-Code;
+|PoPP-Service|
+:tausche OTP gegen PoPP-Token;
+:ermittle PoPP-Token zu OTP;
+:vervollständige PoPP-Token um Daten LEI;
+fork
+    :sende signierte PoPP-Token an PoPP-Client;
+    |PoPP-Client|
+    :lösche OTP vom PoPP-Client;
+    :verwende PoPP-Token;
+fork again
+    |PoPP-Service|
+    :lösche OTP vom PoPP-Service;
+endfork
+stop
+
+@enduml

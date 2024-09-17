@@ -1,0 +1,40 @@
+@startuml "PoPP-Anwendungsfälle"   
+left to right direction
+actor Versicherter as versicherter
+actor Leistungserbringer as lei
+actor "Videosprechstunde Anbieter" as vsa
+
+package "Mit eGK mobil" {
+    usecase "Mit Gerät des Leistungserbringers" as UCeGKLeiDevice
+    usecase "Mit APP der Leistungserbringerinstitution" as UCeGKLeiApp
+    usecase "Mit APP Videosprechstundenanbieter" as UCeGKVS
+}
+
+package "Mit GesundheitsID" {
+    usecase "Authentisierung des Versicherten" as UCAuth
+    usecase "Einlösen OTP beim Leistungserbringer" as UCOTPLE
+    usecase "Einlösen OTP für Videosprechstunde" as UCOTPVS
+}
+
+package "Mit eGK am Ort des Leistungserbringers" {
+
+    usecase "Mit eHealth Card Terminal" as UCeGKeHKT
+    usecase "Mit Standard Terminal" as UCeGKSKT
+}
+
+versicherter --> UCAuth
+versicherter --> UCOTPLE
+versicherter --> UCOTPVS
+UCOTPLE <-- lei
+UCOTPVS <-- vsa
+versicherter --> UCeGKeHKT
+UCeGKeHKT <-- lei
+versicherter --> UCeGKSKT
+UCeGKSKT <-- lei
+versicherter --> UCeGKLeiDevice
+UCeGKLeiDevice <-- lei
+versicherter --> UCeGKLeiApp
+versicherter --> UCeGKVS
+UCeGKVS <-- vsa
+
+@enduml

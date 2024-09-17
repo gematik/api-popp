@@ -1,0 +1,44 @@
+@startuml
+|PoPP-FdV/Kassen-APP|
+start
+:öffne PoPP-FdV;
+|PoPP-Authorization-Server|
+:initiiere Authentisierung des Versicherten;
+|sektoraler IDP Kasse|
+:startet Authentisierungsprozess;
+|Kassen-APP/FdV|
+
+if (Consent PoPP vorhanden?) then (ja)
+  
+else (nein)
+  :zeige Consentdialog;
+endif
+
+if (Consent PoPP erteilt?) then (ja)
+  :zeige Authentisierungsmittel;
+else (nein)
+  :zeige Abbruchdialog;
+  stop
+endif
+
+:authentisiert sich;
+|sektoraler IDP Kasse|
+:erstelle ID-Token mit KVNR;
+|PoPP-Authorization-Server|
+:erstelle Access-Token;
+:sende Access-Token an FdV;
+|Kassen-APP/FdV|
+:fordere OTP-Challange an;
+|PoPP-Service|
+:erstelle "halben Token";
+:erstelle OTP-Challange;
+:speichere OTP-Challange;
+
+|Kassen-APP/FdV|
+:erstelle initiales OTP;
+:speichere  initiales OTP;
+:sende initiales OTP;
+|PoPP-Service|
+:aktualisiere OTP-Challange;
+stop
+@enduml

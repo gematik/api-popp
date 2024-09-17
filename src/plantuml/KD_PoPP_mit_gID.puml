@@ -1,0 +1,44 @@
+ @startuml
+skinparam Shadowing false
+skinparam ParticipantPadding 30
+skinparam BoxPadding 10
+skinparam componentStyle uml2
+
+skinparam sequence {
+    ArrowColor DodgerBlue
+    ActorBorderColor DodgerBlue
+    LifeLineBorderColor Blue
+
+    ParticipantBackgroundColor #3483eb
+    ParticipantBorderColor #3483eb
+    ParticipantFontSize 14
+    ParticipantFontColor White
+
+    ActorBackgroundColor #3483eb
+    ActorFontSize 14
+    NoteBackgroundColor #3483eb
+}
+component PoPP-Authorization-Server {
+ component "PoPP-Auth-Server" as poppauthserver <<OAuth-Server>>
+ component "PoPP-Auth-Server" as popprp <<TI-Relying-Party>>
+}
+actor Versicherter as versichertergid
+component Kassen-APP {
+ component "PoPP-FdV" as  poppfdv <<OAuth-Client>> 
+ component "Authenticator" as authenticator<<TI-OpenID-Provider>>
+}
+poppfdv .down. authenticator
+versichertergid -> poppfdv
+versichertergid -> authenticator
+poppauthserver -left- poppfdv 
+poppauthserver -down- popprp  
+
+component "Popp-Service" as poppservice <<OAuth-Resource>>
+poppfdv <-> poppservice
+   
+component "Sektoraler-IDP" as sekidp <<TI-OpenID-Provider>>   
+popprp -right- sekidp
+authenticator <.> sekidp
+    
+@enduml
+ 
