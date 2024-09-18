@@ -1,40 +1,37 @@
-@startuml "PoPP-Anwendungsfälle"   
+@startuml
 left to right direction
 actor Versicherter as versicherter
-actor Leistungserbringer as lei
-actor "Videosprechstunde Anbieter" as vsa
+actor "Leistungserbringer\n(Arzt, Apotheke)" as lei
+actor "Anbieter LEI Vermittler\n(Videosprechstunde, Apotheken)" as ver
 
-package "Mit eGK mobil" {
-    usecase "Mit Gerät des Leistungserbringers" as UCeGKLeiDevice
-    usecase "Mit APP der Leistungserbringerinstitution" as UCeGKLeiApp
-    usecase "Mit APP Videosprechstundenanbieter" as UCeGKVS
+package "Authentisierung des Versicherten" {
+	usecase "Authentisierung mit GesundheitsID (mobil)" as UCAuthGID
+	usecase "Authentisierung mit eGK (mobil)" as UCAuthEGKMobil
+	usecase "Authentisierung mit eGK (stationär eHealth-KT)" as UCAuthEGKeHKT
+    usecase "Authentisierung mit eGK (stationär Standard-KT)" as UCAuthEGKSKT
 }
 
-package "Mit GesundheitsID" {
-    usecase "Authentisierung des Versicherten" as UCAuth
-    usecase "Einlösen OTP beim Leistungserbringer" as UCOTPLE
-    usecase "Einlösen OTP für Videosprechstunde" as UCOTPVS
+package "Ausgabe des PoPP-Token" {
+usecase "Ausstellung PoPP-Token über Einlösen OTP durch Versicherten\n(am Ort der Leistungserbringung)" as UCGetPoPPTokenLEI
+usecase "Ausstellung PoPP-Token über Einlösen OTP durch Drittanbieter\n(Videosprechstunde, Apotheken)" as UCGetPoPPTokenDritt
+usecase "Ausstellung PoPP-Token direkt \n(am Ort der Leistungserbringung)" as UCGetPoPPTokenDirekt
 }
 
-package "Mit eGK am Ort des Leistungserbringers" {
 
-    usecase "Mit eHealth Card Terminal" as UCeGKeHKT
-    usecase "Mit Standard Terminal" as UCeGKSKT
-}
+versicherter --> UCAuthGID
+versicherter --> UCAuthEGKMobil
+UCAuthEGKMobil <-- ver
+versicherter --> UCAuthEGKeHKT
+versicherter --> UCAuthEGKSKT
+UCAuthEGKeHKT <-- lei
+UCAuthEGKSKT <-- lei 
 
-versicherter --> UCAuth
-versicherter --> UCOTPLE
-versicherter --> UCOTPVS
-UCOTPLE <-- lei
-UCOTPVS <-- vsa
-versicherter --> UCeGKeHKT
-UCeGKeHKT <-- lei
-versicherter --> UCeGKSKT
-UCeGKSKT <-- lei
-versicherter --> UCeGKLeiDevice
-UCeGKLeiDevice <-- lei
-versicherter --> UCeGKLeiApp
-versicherter --> UCeGKVS
-UCeGKVS <-- vsa
+versicherter --> UCGetPoPPTokenLEI
+UCGetPoPPTokenLEI <-- lei
+versicherter --> UCGetPoPPTokenDirekt
+UCGetPoPPTokenDirekt <-- lei
+UCGetPoPPTokenDritt <-- lei
+UCGetPoPPTokenDritt <-- ver
+
 
 @enduml
