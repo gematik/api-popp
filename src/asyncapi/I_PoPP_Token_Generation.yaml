@@ -1,0 +1,169 @@
+asyncapi: 2.6.0
+id: 'urn:card-remote'
+info:
+  title: Card Remote API
+  version: 0.1.0
+  description: | 
+    This API enables the communication between a server and a smartcard.
+    It is intended to be used as part of Proof of Patient Presence (PoPP) 
+    connecting a service with an electronic health card (eGK).
+channels:
+  ClientToServer:
+    description: This channel is used to to receive the messages from the client communicating on behalf of a smartcard
+    subscribe:
+      operationId: onClientMessage
+      message:
+        oneOf:
+          - $ref: '#/components/messages/Error'
+          - $ref: '#/components/messages/ClientHello'
+          - $ref: '#/components/messages/ScenarioResult'
+  ServerToClient:
+    description: This channel is used by the server to send messages to the client and the smartcard
+    publish:
+      operationId: sendServerMessage
+      message:
+        oneOf:
+          - $ref: '#/components/messages/Error'
+          - $ref: '#/components/messages/Scenario'
+          - $ref: '#/components/messages/Token'
+
+
+components:
+  schemas:
+    HardwareType:
+      type: string
+      description: |
+        DEPRECATED since asyncapi-client_0.0.2.ymal
+        Type of the hardware used to connect to the smartcard.
+        Only card readers and konnektors are supported.
+    HardwareDetails:
+      type: object
+      description: |
+        DEPRECATED since asyncapi-client_0.0.2.ymal
+        The details about the hardware used to connect to the smartcard
+      properties:
+        name:
+          type: string
+          description: The name of the hardware product used to connect to the smartcard
+      required:
+        - name
+    ClientHelloPayload:
+      type: object
+      properties:
+        clientApiVersion:
+          type: string
+          description: |
+            Version of the API the client supports towards the PoPP-Service.
+            This version of PoPP-Service API supports the following client versions:
+            - 0.0.1
+            - 0.0.2
+        isContactIccProtocol:
+          type: boolean
+          description: |
+            Type of communication protocol used to connect to the smartcard.
+            TRUE indicates contact based IFD
+            FALSE indicates contactless IFD
+        hardwareType: # TODO deprecated
+          $ref: '#/components/schemas/HardwareType'
+        hardwareDetails: # TODO deprecated
+          $ref: '#/components/schemas/HardwareDetails'
+        sessionIdKonnektor:
+          type: string
+          description: |
+            Either empty if Konnektor is not involved or arbitrary or
+            arbitrary string with Konnektor's session ID
+    ErrorPayload:
+      type: object
+      properties:
+        code:
+          type: string
+          description: The error code
+        message:
+          type: string
+          description: The error message
+      required:
+        - code
+        - message
+    ScenarioPayload:
+      type: object
+      properties:
+        version: # this attribute is only present to follow best-practise
+          type: string
+          description: The version of the scenario
+        esw: # TODO deprecated
+          description: List of expected status words
+          type: array
+          items:
+            type: string
+            description: The expected status word, as hexadecimal string of 4 characters.
+        commands: # TODO deprecated
+          description: List of commands to be executed by the the client on the smartcard
+          type: array
+          items:
+            type: string
+            description: Single APDU command encoded as hexadecimal characters
+        encoded:
+          type: string
+          description: DER-TLV structure with everything there is to know about the scenario
+      required:
+        - version
+        - esw
+        - commands
+        - encoded
+    ScenarioResultPayload:
+      type: object
+      properties:
+        responses:
+          type: array
+          items:
+            type: string
+            description: |
+              Response from the smartcard encoded in hexadecimal characters.
+              Contains at least 4 characters (status word).
+          description: The responses from the smartcard, one for each command in the script
+      required:
+        - responses
+    TokenPayload:
+      type: object
+      properties:
+        token:
+          type: string
+          description: The proof of patient presence token, signed structure.
+        pn:
+          type: string
+          description: Base 64 coded "Prüfnachweis"
+        patientName:
+          type: string
+          description: name, taken from SET with OID id_at_commonName
+        patientId:
+          type: string
+          description: KVNR, taken from SET with OID id_at_organizationUnitName
+        insuranceId:
+          type: string
+          description: IKNR, taken from SET with OID id_at_organizationUnitName
+        insuranceName:
+          type: string
+          description: name of insurance, taken from SET with OID id_at_organizationName
+      required:
+        - token
+        - patientName
+        - patientId
+        - insuranceId
+        - insuranceName
+
+  messages:
+    ClientHello:
+      payload:
+        $ref: '#/components/schemas/ClientHelloPayload'
+    Error:
+      payload:
+        $ref: '#/components/schemas/ErrorPayload'
+    Scenario:
+      payload:
+        $ref: '#/components/schemas/ScenarioPayload'
+    ScenarioResult:
+      payload:
+        $ref: '#/components/schemas/ScenarioResultPayload'
+    Token:
+      payload:
+        $ref: '#/components/schemas/TokenPayload'
