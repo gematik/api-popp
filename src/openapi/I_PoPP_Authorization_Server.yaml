@@ -1,0 +1,259 @@
+openapi: 3.0.3
+info:
+  title: PoPP Authorization Server
+  description: |
+    This interface provides access to PoPP Authorization Server.</br>
+    Through this interface, client systems can carry out user authentication. There are two different ways
+    - Authentication of the insurant or representative using the insurant's device through sectoral IDP of 
+    the health insurance company
+    - Authentication of the insurant or representative using the insurant's eGK
+
+    **General conditions**:</br> 
+    For all operations if applicable:
+    - error responses may be extended by helpful information about the error condition in _errorDetail_
+
+    **Prerequisites**:</br>
+    For insurant and representatives
+    - The sectoral IDP of Health insurance is registered with the TI-Federation
+    - The authorization server of PoPP-Service (PoPP Authorization Server) is registered with the TI-Federation (clientid)
+    - The authenticator modul of the sectoral IDP is part of the frontend application on insurant's device 
+    
+    
+    **Retry interval**:</br>
+    The following retry intervals are suggested in case of an error response:<br>
+    - '500' Internal Error
+      - approx. 10 minutes
+
+  contact:
+    name: gematik GmbH
+    url: 'https://www.gematik.de'
+
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+  version: 1.3.3
+
+  # version history:
+  # ----------------
+  # version 0.0.1
+  #   - initial version for review
+
+servers:
+- url: https://popp-service.de
+
+tags:
+- name: Authorization gID
+  description: |
+   Authorization of the insurant or representative using the insurant's device through sectoral IDP of 
+   the health insurance company
+   
+   This authorization method addresses a sectoral IDP of the federation associated
+   to the health insurance providing the health record. The authentication of a user towards the 
+   IDP is itself a task of the Authenticator associated to 
+   the IDP and available on client side. Each client shall maintain the address of its associated IDP 
+   (idp-iss) for operations of this interface.
+
+   A successful login provides an Access-Token and causes an authorized user allowing access to the 
+   protected resource (PoPP-Service) to get an OTP-Challenge.
+  
+  
+- name: Authorization eGK
+  description: |
+   Authorization with a smartcard (eGK) ... 
+   
+   
+externalDocs:
+  description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_FdV'
+  url: https://gemspec.gematik.de/docs/gemSpec/
+
+paths:
+  /popp/authz/v1/send_authorization_request_egk:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    get:
+      tags:
+        - Authorization eGK
+      operationId: sendAuthorizationRequesteGK
+      summary: (sendAuthorizationRequesteGK) Send authorization request
+      externalDocs:
+        description: ''
+        url: https://gemspec.gematik.de/docs/gemSpec/
+      description: | 
+        Request authorization for a smartcard (eGKB) based client.
+
+      responses:
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+  /popp/authz/v1/send_authorization_request_gid:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    get:
+      parameters:
+        - $ref: '#/components/parameters/idp-iss'
+        - $ref: '#/components/parameters/authorize_validation'
+      tags:
+        - Authorization gID
+      operationId: sendAuthorizationRequestGid
+      summary: (sendAuthorizationRequestGid) Send authorization request
+      externalDocs:
+        description: 'Request to IDP: gemSpec_IDP_FD, chapter "Anfrage von "ID_TOKEN" beim sektoralen Identity Provider"'
+        url: https://gemspec.gematik.de/docs/gemSpec/
+      description: | 
+        Sends an authorization request to the authorization service.
+       
+        **Client**:</br>
+        A client shall use parameter _x-authorize_representative_ for the "Authorize Representative" use case,
+         a login of a user on not owned device for representative entitlement only.
+        The _x-authorize-representative_ parameter will force an authentication of the user with egK + pin or 
+        npa + pin only and limit the possible operations to entitlement management only.
+        A client shall use the returned redirect url to invoke the authenticator. <br/>
+       
+        A client shall use parameter _x-authorize-validation_ for a login of a validation identity (e.g. "Prüfkarte eGK"), 
+        forcing the authorization service to request an authentication at the identity provider in guest mode (eGK + pin). 
+        A client shall use the returned redirect url to invoke the authenticator.
+
+        **Provider**:</br>
+        The authorization service shall send a pushed authorization request (PAR) to the IDP (see: find more details).
+
+        The authorize representative situation (_x-authorize-representative_ == _true_) shall be kept for the subsequent
+        _sendAuthCodeFdV_ and device management operations. 
+        
+        For the _x-authorize-representative_ and the _x-authorize-validation_ case the PAR for the IDP shall include:
+        - amr = urn:telematik:auth:guest:eGK
+
+        _x-authorize-representative_ and _x-authorize-validation_ both should not be set to _true_ at the same time.
+
+        The authorization service' state value and clientid used for the PAR shall occur in the URI-PAR response of the IDP.
+
+        | Conditions | Status code | Error code | Remarks |
+        |------------|-------------|------------|---------|
+        | Successful operation | 302 |||
+        | Request does not match schema | 400 | malformedRequest | also if both "x-authorize"-parameters are set to _true_ |
+        | Invalid request | 403 | invalAuth | includes any error of Authorization Service and IDP which is not mapped to 500 internal Server error |
+        | state or clientid value mismatch | 403 | invalData | returned URI-PAR does not contain expected state or clientid value |
+        | Invalid URI (x-idp-iss) | 404 | noResource | |
+        | Any other error | 500 | internalError ||
+
+         </br>
+        | Postconditions                        | Remarks |
+        |---------------------------------------|---------|
+        | _authorize_representative_ kept for subsequent _sendAuthCodeFdV_ evaluation | if applicable |
+
+      responses:
+        '302':
+          $ref: '#/components/responses/AuthorizationResponseGid302'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+ 
+components:
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        $ref: '#/components/schemas/UserAgentType'
+    idp-iss:
+      name: x-idp-iss
+      description: The issuer Identifier (URL) of the IDP to be used for user authentication
+      in: header
+      required: true
+      schema:
+        type: string
+        example: https://idp_kk.de  
+    authorize_validation:
+      name: x-authorize-validation
+      in: header
+      description: This parameter shall be absent or set to _true_ to indicate an authorization request for validation identities. 
+      required: false
+      schema:
+        type: boolean
+        enum: [true]
+        example: true
+
+  responses:
+    AuthorizationResponseGid302:
+      description: "Found"
+      headers:
+        Location:
+          description: Redirect EndpointURL of the RelyingParty (IDP) and query parameters clientid, request_uri and state.
+          schema:
+            type: "string"
+          example: "https://idp-sek.de/authz?clientid=https://popp_fachdienst.de&request_uri=urn:poppservice007:bwc4JK-ESC0w8acc191e-Y1LTC2&state=abcdgsdfh1234"
+
+    Error400BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorType'
+
+    Error403Forbidden:
+      description: Forbidden.
+      content:
+        application/json:
+          example:
+            errorCode: invalAuth
+          schema:
+            $ref: '#/components/schemas/ErrorType'
+    
+    Error404NotFound:
+      description: Not found.
+      content:
+        application/json:
+          example:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorType'
+
+    Error409Conflict:
+      description: Conflict.
+      content:
+        application/json:
+          example:
+            errorCode: statusMismatch
+          schema:
+            $ref: '#/components/schemas/ErrorType'
+    
+    Error500InternalError:
+      description: Internal Server Error
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorType'
+
+  schemas:
+    UserAgentType:
+      description: "Information about client software with: ClientId(20 characters) + / + VersionNumber (1 to 15 characters)."
+      type: string
+      pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
+      example: CLIENTID1234567890AB/2.1.12-45
+    ErrorType:
+      description: Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode
