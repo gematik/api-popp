@@ -1,11 +1,11 @@
-@startuml
+@startuml "Einlösen OTP in Kassen-APP und Ausstellen des PoPP-Token in LEI"
 |PoPP-FdV/Kassen-APP|
 start
 :öffne PoPP-FdV;
-:präsentiere QR-Code;
+:präsentiere 2D-Code;
 |PoPP-Client|
-:scanne QR-Code;
-:ermittle OTP aus QR-Code;
+:scanne 2D-Code;
+:ermittle OTP aus 2D-Code;
 |PoPP-Service|
 :tausche OTP gegen PoPP-Token;
 :ermittle PoPP-Token zu OTP;

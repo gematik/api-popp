@@ -36,29 +36,29 @@ actor "LEistungserbringer" as L
 
 ' Use OTP-System
 opt Nutzung OTP
-activate poppfdv
-V -> poppfdv : navigate_to_LocalOTPHolder()
-poppfdv -> poppfdv : render_OTP_QRcode()
-poppfdv --> V : OTP_QR_Code_is_visible
-V <-> L :                                                                      hello, here I have my care voucher :-)  OK, please put it here at the reader/scanner
+    activate poppfdv
+    V -> poppfdv : navigate_to_LocalOTPHolder()
+    poppfdv -> poppfdv : render_OTP_2DCode()
+    poppfdv --> V : OTP_2D_Code_is_visible
+    V <-> L :                                                                      hello, here I have my care voucher :-)  OK, please put it here at the reader/scanner
 
-L -> pc : activate_reader/scanner
-activate pc
-V -> pc : present_OTP_QR(OTP_QR)
-pc -> pc : decode_OTP_QR(OTP_QR):OTP
-activate poppservice
-pc -> poppservice : redeem_OTP(OTP, Client Assertion ZT-JWT) 
-poppservice -> poppservice : validate_OTP(OTP)
-poppservice -> popprepo :  read_OTPChallengeRecord(OTP) : OTPChallengeRecord
-popprepo --> poppservice : OTPChallengeRecord
-poppservice -> poppservice : generate_PoPP-Token() : PoPP-Token
-poppservice --> pc : PoPP-Token
-poppservice -> popprepo : deleteOTPChallengeRecord(OTPChallengeRecord)
-deactivate poppservice
-deactivate popprepo
-deactivate pc
-deactivate poppfdv
-deactivate L
-deactivate V
+    L -> pc : activate_reader/scanner
+    activate pc
+    V -> pc : present_OTP_2DCode(OTP_2DCode)
+    pc -> pc : decode_OTP_2DCode(OTP_2DCode):OTP
+    activate poppservice
+    pc -> poppservice : redeem_OTP(OTP, Client Assertion ZT-JWT)
+    poppservice -> poppservice : validate_OTP(OTP)
+    poppservice -> popprepo :  read_OTPChallengeRecord(OTP) : OTPChallengeRecord
+    popprepo --> poppservice : OTPChallengeRecord
+    poppservice -> poppservice : generate_PoPP-Token() : PoPP-Token
+    poppservice --> pc : PoPP-Token
+    poppservice -> popprepo : deleteOTPChallengeRecord(OTPChallengeRecord)
+    deactivate poppservice
+    deactivate popprepo
+    deactivate pc
+    deactivate poppfdv
+    deactivate L
+    deactivate V
 end
 @enduml

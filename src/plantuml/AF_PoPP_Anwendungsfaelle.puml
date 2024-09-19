@@ -1,22 +1,28 @@
-@startuml
+@startuml "PoPP-Anwendungsfälle"
+
 left to right direction
+
 actor Versicherter as versicherter
 actor "Leistungserbringer\n(Arzt, Apotheke)" as lei
 actor "Anbieter LEI Vermittler\n(Videosprechstunde, Apotheken)" as ver
 
 package "Authentisierung des Versicherten" {
-	usecase "Authentisierung mit GesundheitsID (mobil)" as UCAuthGID
-	usecase "Authentisierung mit eGK (mobil)" as UCAuthEGKMobil
-	usecase "Authentisierung mit eGK (stationär eHealth-KT)" as UCAuthEGKeHKT
+    usecase "Authentisierung mit GesundheitsID (mobil)" as UCAuthGID
+    usecase "Authentisierung mit eGK (mobil)" as UCAuthEGKMobil
+    usecase "Authentisierung mit eGK (stationär eHealth-KT)" as UCAuthEGKeHKT
     usecase "Authentisierung mit eGK (stationär Standard-KT)" as UCAuthEGKSKT
 }
 
 package "Ausgabe des PoPP-Token" {
-usecase "Ausstellung PoPP-Token über Einlösen OTP durch Versicherten\n(am Ort der Leistungserbringung)" as UCGetPoPPTokenLEI
-usecase "Ausstellung PoPP-Token über Einlösen OTP durch Drittanbieter\n(Videosprechstunde, Apotheken)" as UCGetPoPPTokenDritt
-usecase "Ausstellung PoPP-Token direkt \n(am Ort der Leistungserbringung)" as UCGetPoPPTokenDirekt
+    usecase "Ausstellung PoPP-Token über Einlösen OTP durch Versicherten\n(am Ort der Leistungserbringung)" as UCGetPoPPTokenLEI
+    usecase "Ausstellung PoPP-Token über Einlösen OTP durch Drittanbieter\n(Videosprechstunde, Apotheken)" as UCGetPoPPTokenDritt
+    usecase "Ausstellung PoPP-Token direkt \n(am Ort der Leistungserbringung)" as UCGetPoPPTokenDirekt
 }
 
+package "Leistungserbringunginstitution am PoPP Service registrieren/anmelden" {
+    usecase "Leistungserbringunginstitution am PoPP-Service registrieren" as UCLeiReg
+    usecase "Leistungserbringunginstitution am PoPP-Service anmelden" as UCLeiAnm
+}
 
 versicherter --> UCAuthGID
 versicherter --> UCAuthEGKMobil
@@ -24,7 +30,7 @@ UCAuthEGKMobil <-- ver
 versicherter --> UCAuthEGKeHKT
 versicherter --> UCAuthEGKSKT
 UCAuthEGKeHKT <-- lei
-UCAuthEGKSKT <-- lei 
+UCAuthEGKSKT <-- lei
 
 versicherter --> UCGetPoPPTokenLEI
 UCGetPoPPTokenLEI <-- lei
@@ -33,5 +39,7 @@ UCGetPoPPTokenDirekt <-- lei
 UCGetPoPPTokenDritt <-- lei
 UCGetPoPPTokenDritt <-- ver
 
+UCLeiReg <-- lei
+UCLeiAnm <-- lei
 
 @enduml

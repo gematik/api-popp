@@ -34,26 +34,26 @@ end box
 
 ' Init OTP-System
 opt Initialisierung OTP
-poppfdv -> poppservice : getOTPChallenge(Access-Token)
-activate  poppservice
-poppservice -> poppservice : validate_AccessToken(KVNR, IKNummer) 
-poppservice -> poppservice : generateOTPChallenge(KVNR, IKNummer, seq-num, seed) 
-poppservice -> popprepo : createOTPChallengeRecord (KVNR, IKNummer, seq-num, seed)
-activate popprepo
-deactivate popprepo
-poppservice --> poppfdv : HTTP-200 \nOTPChallenge: otp-<algorithm identifier> <sequence integer> <seed> z.B.: "otp-sha1 5 abcdefghij"
-deactivate poppservice
-poppfdv -> poppfdv : computeInitialOTP(pass-phrase, seed, seq-num, dictionary): OTP_initial
-poppfdv -> poppfdv : initLocalOTPHolder (seed, seq-num, OTP_initial)
-activate  poppservice
-activate popprepo
-poppfdv -> poppservice : sendInitializationResponse(AccessToken, OTP_initial)
-poppservice -> popprepo : updateOTPChallengeRecord(KVNR, IKNummer, OTP_initial)
-poppservice --> poppfdv : HTTP-200
-deactivate  poppservice
-deactivate popprepo
-deactivate poppfdv
-' Initialization complete
+    poppfdv -> poppservice : getOTPChallenge(Access-Token)
+    activate  poppservice
+    poppservice -> poppservice : validate_AccessToken(KVNR, IKNummer)
+    poppservice -> poppservice : generateOTPChallenge(KVNR, IKNummer, seq-num, seed)
+    poppservice -> popprepo : createOTPChallengeRecord (KVNR, IKNummer, seq-num, seed)
+    activate popprepo
+    deactivate popprepo
+    poppservice --> poppfdv : HTTP-200 \nOTPChallenge: otp-<algorithm identifier> <sequence integer> <seed> z.B.: "otp-sha1 5 abcdefghij"
+    deactivate poppservice
+    poppfdv -> poppfdv : computeInitialOTP(pass-phrase, seed, seq-num, dictionary): OTP_initial
+    poppfdv -> poppfdv : initLocalOTPHolder (seed, seq-num, OTP_initial)
+    activate  poppservice
+    activate popprepo
+    poppfdv -> poppservice : sendInitializationResponse(AccessToken, OTP_initial)
+    poppservice -> popprepo : updateOTPChallengeRecord(KVNR, IKNummer, OTP_initial)
+    poppservice --> poppfdv : HTTP-200
+    deactivate  poppservice
+    deactivate popprepo
+    deactivate poppfdv
+    ' Initialization complete
 end
 
 @enduml

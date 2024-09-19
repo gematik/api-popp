@@ -1,0 +1,42 @@
+@startuml "Authentisierung mit eGK(mobil)"
+|Drittanbieter-APP\n(Vermittler Videosprechstunde \nVermittler Apotheke)|
+start
+:starte Auswahl Leistungserbringerinstitution;
+:wähle Leistungserbringerinstitution\(Arzt, Apotheke);
+|PoPP-FdV\n(Kassen-APP, Drittanbieter-APP)|
+:wähle Authentisierung mit eGK;
+
+|PoPP-Authorization-Server|
+:initiiere Authentisierung des Versicherten;
+
+|PoPP-FdV\n(Kassen-APP, Drittanbieter-APP)|
+:lese Daten von eGK;
+
+|PoPP-Authorization-Server|
+:prüfe Echtheit der eGK;
+:prüfe Gültigkeit der eGK;
+:erstelle Access-Token;
+:sende Access-Token an FdV;
+
+|PoPP-FdV\n(Kassen-APP, Drittanbieter-APP)|
+:fordere OTP-Challange an;
+
+|PoPP-Service|
+:validiere Access-Token;
+:entschlüssel Access-Token;
+:extrahiere KVNT/IK-Nummer aus Access-Token;
+:erstelle "halben Token";
+:erstelle OTP-Challange;
+:speichere OTP-Challange;
+
+|PoPP-FdV\n(Kassen-APP, Drittanbieter-APP)|
+:erstelle initiales OTP;
+:speichere  initiales OTP;
+:sende initiales OTP an PoPP-Service;
+|PoPP-Service|
+:validiere Access-Token;
+:lade OTP-Challenge;
+:aktualisiere OTP-Challange mit OTP;
+
+stop
+@enduml

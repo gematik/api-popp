@@ -1,19 +1,19 @@
-@startuml
-|Videosprechstunden-APP|
+@startuml Einlösen OTP über Drittanbieter und Ausstellen des PoPP-Token
+|Drittanbieter-APP\n(Vermittler Videosprechstunde \nVermittler Apotheke)|
 start
-:wähle Arzt (Leistungserbringer);
-:starte Videosprechstunde;
-|PoPP-FdV/Kassen-APP|
+:wähle Leistungserbringerinstitution\(Arzt, Apotheke);
+:starte Vermittlung;
+|PoPP-FdV\n(Kassen-APP, Drittanbieter-APP)|
 :lade OTP vom PoPP-FdV;
 if (Gültiges OTP vorhanden?) then (ja)
   
 else (nein)
-  :gehe zu checkin in PoPP-FdV;
+  :gehe zu checkin in PoPP-FdV\n(mit eGK, mit GesundheitsID);
 endif
 
-|Videosprechstunden-APP|
+|Drittanbieter-APP\n(Vermittler Videosprechstunde \nVermittler Apotheke)|
 :übermittle OTP und LE-Auswahl;
-|Videosprechstunden-backend|
+|Drittanbieter-backend|
 :erstelle Kommunikationskanal zu Primärsystem der LEI;
 |PoPP-Client|
 :übermittle OTP;
@@ -26,9 +26,9 @@ fork
 |PoPP-Client|
 :lösche OTP vom PoPP-Client;
 :verwende PoPP-Token;
-|Videosprechstunden-backend|
-:lösche OTP aus Videosprechstunden-backend;
-|Videosprechstunden-APP|
+|Drittanbieter-backend|
+:lösche OTP aus Drittanbieter-backend;
+|Drittanbieter-APP\n(Vermittler Videosprechstunde \nVermittler Apotheke)|
 :lösche OTP aus Videosprechstunden APP;
 fork again
 |PoPP-Service|

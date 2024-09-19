@@ -1,13 +1,14 @@
-@startuml
+@startuml "Authentisierung mit GesundheitsID"
 |PoPP-FdV/Kassen-APP|
 start
 :öffne PoPP-FdV;
 |PoPP-Authorization-Server|
 :initiiere Authentisierung des Versicherten;
+
 |sektoraler IDP Kasse|
 :startet Authentisierungsprozess;
-|Kassen-APP/FdV|
 
+|PoPP-FdV/Kassen-APP|
 if (Consent PoPP vorhanden?) then (ja)
   
 else (nein)
@@ -20,25 +21,34 @@ else (nein)
   :zeige Abbruchdialog;
   stop
 endif
-
 :authentisiert sich;
+
 |sektoraler IDP Kasse|
 :erstelle ID-Token mit KVNR;
+
 |PoPP-Authorization-Server|
 :erstelle Access-Token;
 :sende Access-Token an FdV;
-|Kassen-APP/FdV|
+
+|PoPP-FdV/Kassen-APP|
 :fordere OTP-Challange an;
+
 |PoPP-Service|
+:validiere Access-Token;
+:entschlüssel Access-Token;
+:extrahiere KVNT/IK-Nummer aus Access-Token;
 :erstelle "halben Token";
 :erstelle OTP-Challange;
 :speichere OTP-Challange;
 
-|Kassen-APP/FdV|
+|PoPP-FdV/Kassen-APP|
 :erstelle initiales OTP;
 :speichere  initiales OTP;
 :sende initiales OTP;
+
 |PoPP-Service|
+:validiere Access-Token;
+:lade OTP-Challenge;
 :aktualisiere OTP-Challange;
 stop
 @enduml
