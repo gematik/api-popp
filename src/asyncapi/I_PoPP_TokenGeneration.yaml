@@ -15,11 +15,11 @@ servers:
   local:
     host: 127.0.0.1:8000
     protocol: ws
-    pathname: /popp/api/v1
+    pathname: /popp/practitioner/api/v1/token-websocket
   dev:
     host: popp26.t20r.cloud
     protocol: wss
-    pathname: /popp/api/v1
+    pathname: /popp/practitioner/api/v1/token-websocket
 
 channels:
   Token:
