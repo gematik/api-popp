@@ -163,9 +163,9 @@ components:
             description: name of insurance, taken from SET with OID id_at_organizationName
         required:
           - token
-          - patientName
           - patientId
-          - insuranceId
-          - insuranceName
+          - patientName
+          - insurerId
+          - insurerName
 
 
