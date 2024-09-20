@@ -52,14 +52,14 @@ def create_mock_token(
         "iss": "https://popp.example.com",
         "iat": int(time.time()),
         "urn:telematik:popp:v1": {
-            "subject": {
-                "auth_method": "pki",
-                "auth_time": int(time.time()) - 2 * 60 * 60,
+            "actor": {
+                "authMethod": "pki",
+                "authTime": int(time.time()) - 2 * 60 * 60,
                 "identifier": {
                     "type": "telematik-id",
                     "value": telematik_id,
                 },
-                "profession_oid": "1.2.276.0.76.4.50",
+                "professionOid": "1.2.276.0.76.4.50",
             },
             "patient": {
                 "identifier": {
@@ -72,8 +72,8 @@ def create_mock_token(
                         "value": iknr,
                     },
                 },
-                "proof_method": "ehc",
-                "proof_time": int(time.time()) - 1,
+                "proofMethod": "ehc",
+                "proofTime": int(time.time()) - 1,
             },
         },
     }
@@ -81,7 +81,6 @@ def create_mock_token(
     token = jwt.JWT(
         header={
             "alg": "ES256",
-            "jku": "https://popp.example.com/popp/api/v1/public/jwks",
             "kid": signing_key.kid,
             "typ": "vnd.telematik.popp+jwt",
         },
