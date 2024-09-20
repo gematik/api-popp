@@ -155,10 +155,10 @@ components:
           patientName:
             type: string
             description: name, taken from SET with OID id_at_commonName
-          insuranceId:
+          insurerId:
             type: string
             description: IKNR, taken from SET with OID id_at_organizationUnitName
-          insuranceName:
+          insurerName:
             type: string
             description: name of insurance, taken from SET with OID id_at_organizationName
         required:
