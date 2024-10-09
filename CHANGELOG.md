@@ -25,7 +25,5 @@ The versioning policy of this project follows [Semantic Versioning v2.0.0][].
 ## Release 1.0.0
 First release with major version number greater than zero.
 
-[Gradle]:https://gradle.org/
 [Keep a Changelog v1.0.0]:http://keepachangelog.com/en/1.0.0/
-[RFC-7748]:https://www.rfc-editor.org/rfc/rfc7748.html
 [Semantic Versioning v2.0.0]:http://semver.org/spec/v2.0.0.html
