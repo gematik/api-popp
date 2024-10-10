@@ -11,21 +11,21 @@ Konnektor generates the corresponding response.
 Basically a "Scenario" contains a list of ISO/IEC 7816-4 command APDU which are
 intended to be sent to a smartcard. Such a "Scenario" is useful in case the
 roundtrip time of a "producer" (here PoPP-Service) and a "consumer" (here the
-smartcard) is rather large. Thus, instead of sending one command APDU at a time
+smartcard) is rather large. Thus, instead of sending one command APDU at a time, 
 the "producer" compiles and sends a "Scenario" to a "proxy" (here the
 Konnektor) which is closer to the "consumer".
 
 Typical use cases involve more than one "Scenario". For general use of "Scenario"
 countermeasures for reply attack are necessary.
 
-It follows, that a "Scenario" contains the following information:
+It follows that a "Scenario" contains the following information:
 
 1. **Version:** an integer in range [0, 127] defining how to decode information.
-2. **SessionID:** a 256 bit octet string identifying a session consisting of
-   one or more "Scenario", with (very) high probability the SessionID is unique
-   to prevent reply attacks.
-3. **SequenceCounter**: an integer in range [0, 23767] preventing reply attacks
-   within a sequence of "Scenarios", i.e. a group of more than one "Scenario"
+2. **SessionID:** a 128-bit octet string identifying a session consisting of
+   one or more "Scenario", a SessionID may be a Universally Unique Identifier
+   (UUID) according to [RFC 4122][].
+3. **SequenceCounter**: an integer in range [0, 32767] preventing reply attacks
+   within a sequence of "Scenarios" i.e., a group of more than one "Scenario"
    where all those "Scenarios" share the same SessionID. The first "Scenario" in
    a sequence has a SequenceCounter set to zero. The SequenceCounter in the next
    "Scenario" is incremented by one.
@@ -36,7 +36,7 @@ It follows, that a "Scenario" contains the following information:
    "Scenario" in a sequence.
 5. **Scenario7816**: see <a href="#scenario7816">Scenario7816</a>.
 
-For security reasons a "scenario" is signed by a "producer" (here the
+For security reasons, a "scenario" is signed by a "producer" (here the
 PoPP-Service). Thus, before signing a "Scenario" has to be serialized.
 
 <details>
@@ -55,9 +55,9 @@ where the serialized "Scenario" is the signed content.
 Basically a "Scenario7816" contains a list of ISO/IEC 7816-4 command APDU which
 are intended to be sent to a smartcard. It makes no sense to continue a
 "Scenario7816" in case the "consumer" behaves unexpectedly. Furthermore, to
-support debugging and testing it is possible to include logging information.
+support debugging and testing, it is possible to include logging information.
 
-It follows, that a "Scenario7816" contains the following information:
+It follows that a "Scenario7816" contains the following information:
 
 1. **Version:** An integer in range [0, 127] defining how to decode information.
 2. **List:** A list with zero, one or more elements of the following types:
@@ -125,7 +125,7 @@ Some commands, positive time span indicating this is not the last
 
 ```
 Version         = 0
-SessionID       = '0102030405060708090a0b0c0d0e0f'
+SessionID       = '000102030405060708090a0b0c0d0e0f'
 SequenceCounter = 42   
 TimeSpan        = 1000 ms
 Scenario7816    = {
@@ -146,29 +146,29 @@ _**Note:** Non-hexadecimal characters in the following output and line feeds are
 shown only for better reading. Everything after a #-character explains the line._
 
 ```
-30 75                                    # SEQUENCE with 5 elements
-|  02 01 00                              #     INTEGER := 0, version of Scenario
-|  04 0f 0102030405060708090a0b0c0d0e0f  #     OCTETSTRING with SessionID
-|  02 01 2a                              #     INTEGER := 42, SequenceNumber
-|  02 02 03e8                            #     INTEGER := 1000, TimeSpan
-|  30 58                                 #     SEQUENCE with 2 elements, Scenario7816
-|  |  02 01 00                           #         INTEGER := 0, version of Scenario7816
-|  |  30 53                              #         SEQUENCE with 7 elements, list
-|  |  |  30 09                           #             SEQUENCE with 2 elements
-|  |  |  |  02 03 009000                 #                 INTEGER := 36864
-|  |  |  |  02 02 6281                   #                 INTEGER := 25217
-|  |  |  31 0e                           #             SET with 2 elements
-|  |  |  |  02 01 14                     #                 INTEGER := 20
-|  |  |  |  0c 09 53656c656374204d46     #                 UTF8String := "Select MF"
-|  |  |  04 04 00a4040c                  #             OCTETSTRING with 1st command APDU
-|  |  |  31 10                           #             SET with 2 elements
-|  |  |  |  02 01 0a                     #                 INTEGER := 10
-|  |  |  |  0c 0b 726561642045462e47444f #                 UTF8String := "read EF.GDO"
-|  |  |  04 05 00b0820000                #             OCTETSTRING with 2nd command APDU
-|  |  |  31 10                           #             SET with 2 elements
-|  |  |  |  02 01 0a                     #                 INTEGER := 10
-|  |  |  |  0c 0b 726561642045462e415452 #                 UTF8String := "read EF.ATR"
-|  |  |  04 05 00b09d0000                #             OCTETSTRING with 3rd command APDU
+30 76                                     # SEQUENCE with 5 elements
+|  02 01 00                               #   INTEGER := 0, version of Scenario
+|  04 10 000102030405060708090a0b0c0d0e0f #   OCTETSTRING with SessionID
+|  02 01 2a                               #   INTEGER := 42, SequenceNumber
+|  02 02 03e8                             #   INTEGER := 1000, TimeSpan
+|  30 58                                  #   SEQUENCE with 2 elements, Scenario7816
+|  |  02 01 00                            #     INTEGER := 0, version of Scenario7816
+|  |  30 53                               #     SEQUENCE with 7 elements, list
+|  |  |  30 09                            #       SEQUENCE with 2 elements
+|  |  |  |  02 03 009000                  #         INTEGER := 36864
+|  |  |  |  02 02 6281                    #         INTEGER := 25217
+|  |  |  31 0e                            #       SET with 2 elements
+|  |  |  |  02 01 14                      #         INTEGER := 20
+|  |  |  |  0c 09 53656c656374204d46      #         UTF8String := "Select MF"
+|  |  |  04 04 00a4040c                   #       OCTETSTRING with 1st command APDU
+|  |  |  31 10                            #       SET with 2 elements
+|  |  |  |  02 01 0a                      #         INTEGER := 10
+|  |  |  |  0c 0b 726561642045462e47444f  #         UTF8String := "read EF.GDO"
+|  |  |  04 05 00b0820000                 #       OCTETSTRING with 2nd command APDU
+|  |  |  31 10                            #       SET with 2 elements
+|  |  |  |  02 01 0a                      #         INTEGER := 10
+|  |  |  |  0c 0b 726561642045462e415452  #         UTF8String := "read EF.ATR"
+|  |  |  04 05 00b09d0000                 #       OCTETSTRING with 3rd command APDU
 ```
 
 ## Example 2
@@ -177,7 +177,7 @@ Empty "Scenario7816" with a zero time span indicating, that this is the last
 
 ```
 Version         = 0
-SessionID       = '0102030405060708090a0b0c0d0e0f'
+SessionID       = '000102030405060708090a0b0c0d0e0f'
 SequenceCounter = 84   
 TimeSpan        = 0 ms
 Scenario7816    = {
@@ -191,25 +191,25 @@ _**Note:** Non-hexadecimal characters in the following output and line feeds are
 shown only for better reading. Everything after a #-character explains the line._
 
 ```
-30 21                                   # SEQUENCE with 5 elements
-|  02 01 00                             #     INTEGER := 0, version of Scenario
-|  04 0f 0102030405060708090a0b0c0d0e0f #     OCTETSTRING with SessionID
-|  02 01 54                             #     INTEGER := 84, Sequencenumber
-|  02 01 00                             #     INTEGER := 0, TimeSpan
-|  30 05                                #     SEQUENCE with 2 elements
-|  |  02 01 00                          #         INTEGER := 0, version of Scenario7816
-|  |  30 00                             #         SEQUENCE with 0 elements, empty list
+30 21                                     # SEQUENCE with 5 elements
+|  02 01 00                               #   INTEGER := 0, version of Scenario
+|  04 10 000102030405060708090a0b0c0d0e0f #   OCTETSTRING with SessionID
+|  02 01 54                               #   INTEGER := 84, Sequencenumber
+|  02 01 00                               #   INTEGER := 0, TimeSpan
+|  30 05                                  #   SEQUENCE with 2 elements
+|  |  02 01 00                            #     INTEGER := 0, version of Scenario7816
+|  |  30 00                               #     SEQUENCE with 0 elements, empty list
 ```
 
 ### Serialization of the corresponding response
 
-For each command APDU of a "Scenario7816" which is sent to a smartcard the smartcard
-returns a corresponding response APDU. Hereafter the serialized form is
-specified:
+For each command APDU of a "Scenario7816" which is sent to a smartcard, the
+smartcard returns a corresponding response APDU. Hereafter the serialized form
+is specified:
 
-1. A collection of response APDU corresponding to a "Scenario7816" **SHALL** be a
-   DER SEQUENCE data object with tag 0x30 = '30' where the sequence consists of
-   zero, one or more elements.
+1. A collection of response APDU corresponding to a "Scenario7816" **SHALL** be
+   a DER SEQUENCE data object with tag 0x30 = '30' where the sequence consists
+   of zero, one or more elements.
 2. Each element in the sequence **SHALL** be a DER OCTETSTRING data object with
    tag 0x04 = '04' where the value-field contains an ISO/IEC 7816-4 response
    APDU.
@@ -221,7 +221,7 @@ smartcard and the smartcard responded with '6a82' = FileNotFound to the second
 command APDU (read EF.GDO), then the corresponding response would be:
 
 _**Note:** Because the status word of the second response APDU is not in the 
-list of expected status words no further command APDU is sent to the smartcard.
+list of expected status words, no further command APDU is sent to the smartcard.
 Consequently, no further response APDU is present._
 
 ```
@@ -236,13 +236,14 @@ shown only for better reading. Everything after a #-character explains the line.
 
 ```
 30 08         # SEQUENCE with 2 elements
-|  04 02 9000 #     OCTETSTRING with response APDU to 1st command APDU
-|  04 02 6a82 #     OCTETSTRING with response APDU to 2nd command APDU
+|  04 02 9000 #   OCTETSTRING with response APDU to 1st command APDU
+|  04 02 6a82 #   OCTETSTRING with response APDU to 2nd command APDU
 ```
 
 
 [ASN.1]:https://en.wikipedia.org/wiki/ASN.1
 [DER]:https://en.wikipedia.org/wiki/X.690#DER_encoding
+[RFC 4122]:https://datatracker.ietf.org/doc/html/rfc4122
 [RFC 5652]:https://datatracker.ietf.org/doc/html/rfc5652
 [UTF-8]:https://en.wikipedia.org/wiki/UTF-8
 [log level]:https://www.slf4j.org/api/org/apache/log4j/Level.html

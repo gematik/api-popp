@@ -24,10 +24,10 @@ connection to the eHC.
 Thus, the PoPP-Service sends a "Scenario" via the PoPP-Client to the Konnektor.
 The Konnektor sends the ISO/IEC 7816-4 command APDu from the "Scenario" to the
 eHC (via the eHCT) and collects the corresponding responses APDU.
-The collected response APDU are returned to the PoPP-Service (also via the
+The collected response APDUs are returned to the PoPP-Service (also via the
 PoPP-Client).
 
-In particular this project describes the interface to and from the Konnektor
+In particular, this project describes the interface to and from the Konnektor
 regarding the handling of "Scenarios". For further details, consult the
 [Specification](./scenario/Specification.md).
 
