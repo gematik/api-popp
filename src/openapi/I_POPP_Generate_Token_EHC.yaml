@@ -139,13 +139,13 @@ components:
       title: "POPP Token Claims"
       description: "Schema for the claims of a PoPP token as contained in the JWT."
       properties:
-        iat:
-          type: integer
-          description: "The time the token was issued."
         version:
           type: integer
           description: "The version of the PoPP token format."
           const: 1
+        iat:
+          type: integer
+          description: "The time the token was issued."
         proofMethod:
           type: string
           description: "The proof method used."
@@ -177,8 +177,8 @@ components:
           type: string
           description: "Profession OID of the actor."
       required:
-        - iat
         - version
+        - iat
         - proofMethod
         - patientId
         - insurerId
