@@ -19,7 +19,7 @@ components:
           description: "The version of the eHC proof process to use, chosen by the client. Server is expected to support this version."
         cardConnectionType:
           type: string
-          enum: [ "contactStandard", "contactConnector", "contactlessStandard", "contactlessConnector" ]
+          enum: [ "contact-standard", "contact-connector", "contactless-standard", "contactless-connector" ]
           description: |
             The type of smartcard connection the client claims to use:
             
