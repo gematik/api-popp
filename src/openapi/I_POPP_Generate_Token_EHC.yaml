@@ -144,11 +144,10 @@ components:
           description: "The version of the PoPP token format."
           const: 1
         iat:
-          type: string
-          format: date-time
+          type: integer
           description: |
-            The time the token was issued, formatted as described in
-            https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#data-types
+            The time the token was issued, interpreted as described in
+            https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
         proofMethod:
           type: string
           description: "The proof method used."
@@ -160,11 +159,10 @@ components:
             - practitioner-healthid-otp
             - provider-ehc-contactless
         patientPoofTime:
-          type: string
-          format: date-time
+          type: integer
           description: |
-            The time the patient proof was performed, formatted as described in
-            https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#data-types
+            The time the patient proof was performed, interpreted as described in
+            https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
             
             * For proof methods with eHC this is the time the eHC was used.
             * For proof methods with HealthID this is the time the identity 
