@@ -139,13 +139,15 @@ components:
       title: "POPP Token Claims"
       description: "Schema for the claims of a PoPP token as contained in the JWT."
       properties:
-        iat:
-          type: integer
-          description: "The time the token was issued."
         version:
           type: integer
           description: "The version of the PoPP token format."
           const: 1
+        iat:
+          type: integer
+          description: |
+            The time the token was issued, interpreted as described in
+            https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
         proofMethod:
           type: string
           description: "The proof method used."
@@ -159,7 +161,8 @@ components:
         patientPoofTime:
           type: integer
           description: |
-            The time the patient proof was performed.
+            The time the patient proof was performed, interpreted as described in
+            https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
             
             * For proof methods with eHC this is the time the eHC was used.
             * For proof methods with HealthID this is the time the identity 
@@ -177,8 +180,8 @@ components:
           type: string
           description: "Profession OID of the actor."
       required:
-        - iat
         - version
+        - iat
         - proofMethod
         - patientId
         - insurerId
