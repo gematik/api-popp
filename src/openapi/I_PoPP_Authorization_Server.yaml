@@ -1,9 +1,9 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: PoPP Authorization Server
   description: |
     This interface provides access to PoPP Authorization Server.</br>
-    Through this interface, client systems can carry out user authentication. There are two different ways
+    Through this interface, client systems (popp-fdv) can carry out user authentication. There are two different ways
     - Authentication of the insurant or representative using the insurant's device through sectoral IDP of 
     the health insurance company
     - Authentication of the insurant or representative using the insurant's eGK
@@ -15,8 +15,8 @@ info:
     **Prerequisites**:</br>
     For insurant and representatives
     - The sectoral IDP of Health insurance is registered with the TI-Federation
-    - The authorization server of PoPP-Service (PoPP Authorization Server) is registered with the TI-Federation (clientid)
-    - The authenticator modul of the sectoral IDP is part of the frontend application on insurant's device 
+    - The popp authorization server is registered with the TI-Federation
+    - The popp-fdv client is registered with popp authorization server 
     
     
     **Retry interval**:</br>
@@ -45,109 +45,154 @@ servers:
 tags:
 - name: Authorization gID
   description: |
-   Authorization of the insurant or representative using the insurant's device through sectoral IDP of 
-   the health insurance company
+   The insured person uses his device to authenticate himself to the health insurance company's sectoral IDP (GesundheitsID).
+   The popp authorization server must know the address of the IDP (iss-idp) with which the insured is registered.
+   For this reason, it is possible to view a list of registered IDPs (insurance companies) on popp-fdv.
+   If the Popp authorization server does not know the IDP address of the calling popp-fdv, the insured person 
+   must select their health insurance company in the popp-fdv.
    
-   This authorization method addresses a sectoral IDP of the federation associated
-   to the health insurance providing the health record. The authentication of a user towards the 
-   IDP is itself a task of the Authenticator associated to 
-   the IDP and available on client side. Each client shall maintain the address of its associated IDP 
-   (idp-iss) for operations of this interface.
+   Authenticating a user against the IDP is a task of the authenticator belonging to the IDP on the insured person’s device. 
 
-   A successful login provides an Access-Token and causes an authorized user allowing access to the 
+   A successful login provides an popp-fdv access token and causes an authorized user allowing access to the 
    protected resource (PoPP-Service) to get an OTP-Challenge.
   
   
 - name: Authorization eGK
   description: |
-   Authorization with a smartcard (eGK) ... 
+   The insured person uses his eGK for validation. Popp-fdv extract cvc and c.aut from eGK and use this parameter for authorization request.
+   The popp authorization server generate an egk-check access token. Popp-fdv use egk-check access token for communication with popp-service
+   to read data from egk.
    
+   A successful evaluation of egk data provides an OTP-Challenge. 
    
+- name: Access
+  description: |
+    Popp-fdv use an authorization code to get an access token (popp-fdv access token or egk-check access token) from popp authorization server. 
+    Popp-fdv uses the access token to gain access to the Popp service and start the OTP initialization process.
+
 externalDocs:
   description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_FdV'
   url: https://gemspec.gematik.de/docs/gemSpec/
 
 paths:
-  /popp/authz/v1/send_authorization_request_egk:
+  /popp/authz/auth/v1/sendAuthorizationRequestEgk:
     parameters:
       - $ref: '#/components/parameters/useragent'
-    get:
+    post:
       tags:
         - Authorization eGK
       operationId: sendAuthorizationRequesteGK
-      summary: (sendAuthorizationRequesteGK) Send authorization request
+      summary: (sendAuthorizationRequesteGK) Send authorization request for authentication with eGK
       externalDocs:
-        description: ''
+        description: 'gemSpec_popp_service, Kapitel 3.3.2 Authentisierung des Versicherten mit eGK (mobil)'
         url: https://gemspec.gematik.de/docs/gemSpec/
       description: | 
-        Request authorization for a smartcard (eGKB) based client.
+        Sends an authorization request to the authorization service with information from eGK of tehe insurend person.
+         </br>
+        | Preconditions                        | Remarks |
+        |---------------------------------------|---------|
+        | popp-fdv has read CVC and C.AUT from eGK|  CVC und C.AUT are neccecary for eGK validation|
+       
+        **Client**:</br>
+        A registered popp-fdv client must send an OAuth-compliant request to the Popp authorization server.
+        To defend against attacks, the popp-fdv client must use pkce (Proof Key for Code Exchange). 
+        The code challenge method (code_challenge_method) must be “S256”. The response type (response_type) must be "code".
+        The authorization request must send additional parameter cvc and c.aut.<br/>
+       
+        **Provider**:</br>
+        The popp authorization server create an access token (egk-check access token). The access token includes information about
+        cvc and c.aut. The egk-check access token is signed with a key was published in entity statement of popp authorization server.
+        The popp-fdv use egk-check access token to get access to popp-service for creation a direct communication cannel 
+        between eGK and popp-service.
 
+        After creation egk-check access token popp authorization server create an authorization code for the calling popp-fdv.  
+
+        | Conditions | Status code | Error code | Remarks |
+        |------------|-------------|------------|---------|
+        | Successful operation | 200 | successful ||
+        | Request does not match schema | 400 | malformedRequest |  |
+        | clientid value mismatch | 403 | invalData | popp authorization server didn't know clientid value |
+        | Any other error | 500 | internalError ||
+
+         </br>
+        | Postconditions                        | Remarks |
+        |---------------------------------------|---------|
+        | popp-fdv have to exchange authorization code against access token |  |
+
+      requestBody:
+        description: >-
+            Authorization Request is an OAuth complaint request used Proof Key for Code Exchange by OAuth Public Clients (see https://datatracker.ietf.org/doc/html/rfc763).
+        required: true
+        content: 
+          application/json:
+           schema: 
+             $ref: '#/components/schemas/AuthorizationRequestEgk'
+      
       responses:
+        '200':
+          $ref: '#/components/responses/AuthorizationResponse200'
         '400':
           $ref: '#/components/responses/Error400BadRequest'
         '403':
           $ref: '#/components/responses/Error403Forbidden'
         '500':
           $ref: '#/components/responses/Error500InternalError'
-
-  /popp/authz/v1/send_authorization_request_gid:
+      
+  /popp/authz/auth/v1/sendAuthorizationRequestGid:
     parameters:
       - $ref: '#/components/parameters/useragent'
-    get:
-      parameters:
-        - $ref: '#/components/parameters/idp-iss'
-        - $ref: '#/components/parameters/authorize_validation'
+    post:
       tags:
         - Authorization gID
       operationId: sendAuthorizationRequestGid
-      summary: (sendAuthorizationRequestGid) Send authorization request
+      summary: (sendAuthorizationRequestGid) Send authorization request for authentication with GesundheitsID 
       externalDocs:
-        description: 'Request to IDP: gemSpec_IDP_FD, chapter "Anfrage von "ID_TOKEN" beim sektoralen Identity Provider"'
+        description: 'gemSpec_IDP_Sek, table "Authorization Request von Anwendungsfrontend zum Authorization-Server"'
         url: https://gemspec.gematik.de/docs/gemSpec/
       description: | 
-        Sends an authorization request to the authorization service.
+        Sends an authorization request to the authorization service for authentication with GesundheitsID.
        
         **Client**:</br>
-        A client shall use parameter _x-authorize_representative_ for the "Authorize Representative" use case,
-         a login of a user on not owned device for representative entitlement only.
-        The _x-authorize-representative_ parameter will force an authentication of the user with egK + pin or 
-        npa + pin only and limit the possible operations to entitlement management only.
-        A client shall use the returned redirect url to invoke the authenticator. <br/>
+        A registered popp-fdv client must send an OAuth-compliant request to the Popp authorization server.
+        To defend against attacks, the popp-fdv client must use pkce (Proof Key for Code Exchange). 
+        The code challenge method (code_challenge_method) must be “S256”. The response type (response_type) must be "code".<br/>
        
-        A client shall use parameter _x-authorize-validation_ for a login of a validation identity (e.g. "Prüfkarte eGK"), 
-        forcing the authorization service to request an authentication at the identity provider in guest mode (eGK + pin). 
-        A client shall use the returned redirect url to invoke the authenticator.
-
         **Provider**:</br>
-        The authorization service shall send a pushed authorization request (PAR) to the IDP (see: find more details).
+        The poppp authorization server shall send a pushed authorization request (PAR) to the IDP 
+        (see: gemSpec_IDP_Sek, table "Parameter Pushed Authorization Request").
+        To defend against attacks, the popp authorization server must use pkce (Proof Key for Code Exchange) too. 
+        The code challenge method (code_challenge_method) must be “S256”. The response type (response_type) must be "code".
+        It is neccecary to generate and propagate a "nonce" parameter.
+        The acr-value in the PAR must be "gematic_ehealth_loa_high", the scope parameter used in the PAR must be "urn:telematik:versicherter".  
 
-        The authorize representative situation (_x-authorize-representative_ == _true_) shall be kept for the subsequent
-        _sendAuthCodeFdV_ and device management operations. 
-        
-        For the _x-authorize-representative_ and the _x-authorize-validation_ case the PAR for the IDP shall include:
-        - amr = urn:telematik:auth:guest:eGK
-
-        _x-authorize-representative_ and _x-authorize-validation_ both should not be set to _true_ at the same time.
-
-        The authorization service' state value and clientid used for the PAR shall occur in the URI-PAR response of the IDP.
+        The authorization server state value and clientid used for the PAR shall occur in the URI-PAR response of the IDP.
+        After successful authentication popp authorization server create an authorization code for the calling popp-fdv.
 
         | Conditions | Status code | Error code | Remarks |
         |------------|-------------|------------|---------|
-        | Successful operation | 302 |||
-        | Request does not match schema | 400 | malformedRequest | also if both "x-authorize"-parameters are set to _true_ |
-        | Invalid request | 403 | invalAuth | includes any error of Authorization Service and IDP which is not mapped to 500 internal Server error |
-        | state or clientid value mismatch | 403 | invalData | returned URI-PAR does not contain expected state or clientid value |
-        | Invalid URI (x-idp-iss) | 404 | noResource | |
+        | Successful operation | 200 | successful ||
+        | Request does not match schema | 400 | malformedRequest |  |
+        | clientid value mismatch | 403 | invalData | popp authorization server didn't know clientid value |
+        | Invalid URI (idp-iss) | 404 | noResource | uri for idp do not exist or ist not registered on TI-Federation|
         | Any other error | 500 | internalError ||
-
+ 
          </br>
         | Postconditions                        | Remarks |
         |---------------------------------------|---------|
-        | _authorize_representative_ kept for subsequent _sendAuthCodeFdV_ evaluation | if applicable |
-
+        | popp-fdv have to exchange authorization code against access token |  |
+      
+      requestBody:
+        description: >-
+            Authorization Request is an OAuth complaint request used Proof Key for Code Exchange by OAuth Public Clients (see https://datatracker.ietf.org/doc/html/rfc763).
+        required: true
+        content: 
+          application/json:
+           schema: 
+             $ref: '#/components/schemas/AuthorizationRequestGid'
+      
       responses:
-        '302':
-          $ref: '#/components/responses/AuthorizationResponseGid302'
+        '200':
+          $ref: '#/components/responses/AuthorizationResponse200'
         '400':
           $ref: '#/components/responses/Error400BadRequest'
         '403':
@@ -157,6 +202,59 @@ paths:
         '500':
           $ref: '#/components/responses/Error500InternalError'
  
+  /popp/authz/token/v1/getAccessToken:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    post:
+      tags:
+        - Access
+      operationId: getAccessToken
+      summary: (getAccessToken) Send token request to obtain an access token from popp authorization server
+      description: | 
+        Sends an token request against popp authorization server.
+
+         </br>
+        | Preconditions                        | Remarks |
+        |---------------------------------------|---------|
+        | popp-fdv has an authorization code was created by the popp auhtorization server |  |
+       
+        **Client**:</br>
+        A registered popp-fdv client must send token requst against authorization server to get an access token.
+        The parameter grand type (grant_type) must be "authorization_code". <br/>
+       
+        **Provider**:</br>
+        The poppp authorization server checks the authorization code and the code verifier. Depending on the authorization code  
+        the popp authorization server sends an egk-check access token or a popp-fdv access token to the popp-fdv.  
+
+      
+        | Conditions | Status code | Error code | Remarks |
+        |------------|-------------|------------|---------|
+        | Successful operation | 200 | successful ||
+        | Request does not match schema | 400 | malformedRequest |  |
+        | mismatch authorizationcode or code verifier or clientId | 403 | invalData | popp authorization server didn't know clientid value or pkce proof failed |
+        | Any other error | 500 | internalError ||
+ 
+      
+      requestBody:
+        description: >-
+            Token Request is an OAuth complaint request used Proof Key for Code Exchange by OAuth Public Clients (see https://datatracker.ietf.org/doc/html/rfc763).
+        required: true
+        content: 
+          application/json:
+           schema: 
+             $ref: '#/components/schemas/TokenRequest'
+      
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+
 components:
   parameters:
     useragent:
@@ -166,14 +264,6 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/UserAgentType'
-    idp-iss:
-      name: x-idp-iss
-      description: The issuer Identifier (URL) of the IDP to be used for user authentication
-      in: header
-      required: true
-      schema:
-        type: string
-        example: https://idp_kk.de  
     authorize_validation:
       name: x-authorize-validation
       in: header
@@ -185,17 +275,22 @@ components:
         example: true
 
   responses:
-    AuthorizationResponseGid302:
-      description: "Found"
-      headers:
-        Location:
-          description: Redirect EndpointURL of the RelyingParty (IDP) and query parameters clientid, request_uri and state.
+    AuthorizationResponse200:
+      description: HttpStatus.OK (200)
+      content:
+        application/json:
           schema:
-            type: "string"
-          example: "https://idp-sek.de/authz?clientid=https://popp_fachdienst.de&request_uri=urn:poppservice007:bwc4JK-ESC0w8acc191e-Y1LTC2&state=abcdgsdfh1234"
+            $ref: '#/components/schemas/AuthorizationResponse200Type'
+
+    TokenResponse200:
+      description: HttpStatus.OK (200)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TokenResponse200Type'
 
     Error400BadRequest:
-      description: Bad Request
+      description: HttpStatus.BAD_REQUEST (400)
       content:
         application/json:
           example:
@@ -204,7 +299,7 @@ components:
             $ref: '#/components/schemas/ErrorType'
 
     Error403Forbidden:
-      description: Forbidden.
+      description: HttpStatus.FORBIDDEN (403)
       content:
         application/json:
           example:
@@ -213,7 +308,7 @@ components:
             $ref: '#/components/schemas/ErrorType'
     
     Error404NotFound:
-      description: Not found.
+      description: HttpStatus.NOT_FOUND (404)
       content:
         application/json:
           example:
@@ -222,7 +317,7 @@ components:
             $ref: '#/components/schemas/ErrorType'
 
     Error409Conflict:
-      description: Conflict.
+      description:  HttpStatus.CONFLICT (409).
       content:
         application/json:
           example:
@@ -231,7 +326,7 @@ components:
             $ref: '#/components/schemas/ErrorType'
     
     Error500InternalError:
-      description: Internal Server Error
+      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
       content:
         application/json:
           example:
@@ -245,6 +340,116 @@ components:
       type: string
       pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
       example: CLIENTID1234567890AB/2.1.12-45
+    AuthorizationRequestGid:
+      description: Popp-fdv client sends an oauth-complaint authorization request with pkce
+      type: object
+      properties:
+        issidp:
+          description: The issuer Identifier (URL) of the IDP to be used for user authentication 
+          type: string
+          example: https://idp_kk.de 
+        clientId:
+          description: Identifier of the application registered on popp authorization server 
+          type: string
+          example: "myApplicationPoPPFdV"
+        state:
+          description: Neccecery sequrity parameter, see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
+          type: "string"
+          example: "myPoPPFdVGeneratedState"
+        redirect_uri:
+          description: Destination URL for the authorization code. The authorization code is used to redeem against an access token used in the Popp authorization server.
+          type: "string"
+          example: "https://myApplication.de"
+        code_challenge:
+          description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+          type: "string"
+          example: "K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"
+        code_challenge_method:
+          description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
+          type: "string"
+          example: "S256"
+        response_type:
+          description: Popp-FdV client will get an authorization code, and will exchange this code against an access token.
+          type: "string"
+          example: "code"
+    AuthorizationRequestEgk:
+      description: Popp-fdv client sends an oauth-complaint authorization request with pkce
+      type: object
+      properties:
+        cvcegk:
+          description: cvc read from egk of the insurend person 
+          type: string
+        cauthegk:
+          description: c.aut read from egk of the insurend person 
+          type: string  
+        clientId:
+          description: Identifier of the application registered on popp authorization server 
+          type: string
+          example: "myApplicationPoPPFdV"
+        state:
+          description: Neccecery sequrity parameter, see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
+          type: "string"
+          example: "myPoPPFdVGeneratedState"
+        redirect_uri:
+          description: Destination URL for the authorization code. The authorization code is used to redeem against an access token used in the Popp authorization server.
+          type: "string"
+          example: "https://myApplication.de"
+        code_challenge:
+          description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+          type: "string"
+          example: "K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"
+        code_challenge_method:
+          description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
+          type: "string"
+          example: "S256"
+        response_type:
+          description: Popp-FdV client will get an authorization code, and will exchange this code against an access token.
+          type: "string"
+          example: "code"
+    TokenRequest:
+      description: Popp-fdv client sends an oauth-complaint token request with pkce
+      type: object
+      properties:
+        grant_type:
+          description: grant type 
+          type: string
+          example: authorization_code
+        code:
+          description: authorization code 
+          type: string  
+          example: egkcheck_autorizationcode<number>
+        code_verifier:
+          description: pkce code verifier (see https://datatracker.ietf.org/doc/html/rfc7636#section-4.1) 
+          type: string  
+        clientId:
+          description: Identifier of the application registered on popp authorization server 
+          type: string
+          example: "myApplicationPoPPFdV"
+        redirect_uri:
+          description: Destination URL for the access token.
+          type: "string"
+          example: "https://myApplication.de"
+    AuthorizationResponse200Type:
+      description: Popp autorization server sends an authorization code
+      type: object
+      properties:
+        code:
+          description: authorization code 
+          type: string  
+          example: egkcheck_autorizationcode<number>
+        state:
+          description: The status must be exactly the same as what the Popp-FDV client sent in the authorization request (see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9) 
+          type: string 
+          example: "myPoPPFdVGeneratedState" 
+
+    TokenResponse200Type:
+      description: Popp autorization server sends an access token
+      type: object
+      properties:
+        accesstoken:
+          description: access token 
+          type: string     
+
     ErrorType:
       description: Error object with additional information about the occurred error
       type: object
