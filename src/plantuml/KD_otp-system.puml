@@ -3,6 +3,7 @@ skinparam Shadowing false
 skinparam ParticipantPadding 20
 skinparam BoxPadding 10
 
+
 skinparam sequence {
     ArrowColor DodgerBlue
     ActorBorderColor DodgerBlue
