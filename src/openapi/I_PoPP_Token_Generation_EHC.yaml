@@ -1,7 +1,27 @@
 openapi: 3.1.0
-title: PoPP Token Generation API
+title: PoPP Token Generation API for eHealth-Card
 description: |
-  This interface provides access to PoPP Token Generation API.
+  This interface provides access to PoPP Token Generation API using the eHealth-Card.
+  It defines the messages exchanged between the client and the server to generate a PoPP token. 
+  The messages are sent over a web socket connection.
+
+paths:
+  /popp/practitioner/api/v1/token-generation-ehc:
+    summary: WebSocket endpoint for PoPP Token Generation 
+    description: |
+      This endpoint allows the client to establish a WebSocket connection to the server and transmit messages to generate a PoPP token using the eHealth-Card.
+    get:
+      summary: |
+        Establish WebSocket Connection. 
+        
+        Note: The actual connection is established using the WebSocket protocol (wss://) and not via regular HTTP GET.
+      operationId: connect
+      responses:
+        '101':
+          description: Switching protocols to WebSocket
+        '400':
+          description: Bad request - unable to establish connection
+
 
 components:
   schemas:
@@ -133,57 +153,3 @@ components:
         - type
         - token
         - pn
-
-    TokenClaims:
-      type: object
-      title: "POPP Token Claims"
-      description: "Schema for the claims of a PoPP token as contained in the JWT."
-      properties:
-        version:
-          type: integer
-          description: "The version of the PoPP token format."
-          const: 1
-        iat:
-          type: integer
-          description: |
-            The time the token was issued, interpreted as described in
-            https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
-        proofMethod:
-          type: string
-          description: "The proof method used."
-          enum:
-            - practitioner-ehc-contact-standard
-            - practitioner-ehc-contact-connector
-            - practitioner-ehc-contactless-standard
-            - practitioner-ehc-contactless-connector
-            - practitioner-healthid-otp
-            - provider-ehc-contactless
-        patientPoofTime:
-          type: integer
-          description: |
-            The time the patient proof was performed, interpreted as described in
-            https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
-            
-            * For proof methods with eHC this is the time the eHC was used.
-            * For proof methods with HealthID this is the time the identity 
-            was verified using the OpenID Connect.
-        patientId:
-          type: string
-          description: "The patient identifier (KVNR)."
-        insurerId:
-          type: string
-          description: "The insurer identifier (IKNR)."
-        actorId:
-          type: string
-          description: "The actor identifier (Telematik-ID)."
-        actorProfessionOid:
-          type: string
-          description: "Profession OID of the actor."
-      required:
-        - version
-        - iat
-        - proofMethod
-        - patientId
-        - insurerId
-        - actorId
-        - actorProfessionOid
