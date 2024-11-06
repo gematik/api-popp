@@ -1,0 +1,66 @@
+components:
+  schemas:
+    PoPPTokenHeaders:
+      type: object
+      title: "POPP Token Headers"
+      description: | 
+        Schema for the headers of a PoPP token as contained in the JWT.
+    PoPPTokenClaims:
+      type: object
+      title: "POPP Token Claims"
+      description: | 
+        Schema for the claims of a PoPP token as contained in the JWT.
+      properties:
+        version:
+          type: integer
+          description: "The version of the PoPP token format."
+          const: 1
+        iss: 
+          type: string
+          description: "The issuer of the token. The value must be the URL of the PoPP server without the path and without a trailing slash."
+          example: "https://popp.example.com"
+        iat:
+          type: integer
+          description: |
+            The time the token was issued, interpreted as described in
+            https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
+        proofMethod:
+          type: string
+          description: "The proof method used."
+          enum:
+            - practitioner-ehc-contact-standard
+            - practitioner-ehc-contact-connector
+            - practitioner-ehc-contactless-standard
+            - practitioner-ehc-contactless-connector
+            - practitioner-healthid-otp
+            - provider-ehc-contactless
+        patientPoofTime:
+          type: integer
+          description: |
+            The time the patient proof was performed, interpreted as described in
+            https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
+            
+            * For proof methods with eHC this is the time the eHC was used.
+            * For proof methods with HealthID this is the time the identity 
+            was verified using the OpenID Connect.
+        patientId:
+          type: string
+          description: "The patient identifier (KVNR)."
+        insurerId:
+          type: string
+          description: "The insurer identifier (IKNR)."
+        actorId:
+          type: string
+          description: "The actor identifier (Telematik-ID)."
+        actorProfessionOid:
+          type: string
+          description: "Profession OID of the actor."
+      required:
+        - version
+        - iat
+        - proofMethod
+        - patientPoofTime
+        - patientId
+        - insurerId
+        - actorId
+        - actorProfessionOid
