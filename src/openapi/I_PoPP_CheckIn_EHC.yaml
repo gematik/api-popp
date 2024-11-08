@@ -4,7 +4,8 @@ info:
   description: |
     This interface provides access to PoPP Authorization Server.</br>
     Using this interface, customer systems (popp-fdv) can carry out user authentication 
-    via the insurer's eHealth-Card with a smartphone.
+    via the insurer's eHealth-Card with a smartphone. 
+    The Popp FDV receives an card-checked access token for access to the Popp server (resource server).
 
     **General conditions**:</br> 
     For all operations if applicable:
@@ -189,7 +190,7 @@ components:
             $ref: '#/components/schemas/AuthorizationResponse200Schema'
 
     TokenResponse200:
-      description: JSON web token for access the popp-service
+      description: JSON web token (card-checked access token) for access the popp-service
       content:
         application/jwt:
           schema:
