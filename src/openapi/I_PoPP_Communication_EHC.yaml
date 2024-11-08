@@ -60,19 +60,18 @@ externalDocs:
   url: https://gemspec.gematik.de/docs/gemSpec/
 
 paths:
-  /popp/service/v1/sendEHCCommunicationRequest:
+  /popp/service/v1/open-communication-ehc:
     parameters:
       - $ref: '#/components/parameters/useragent'
     post:
       tags:
         - eHealth-Card communication
-      operationId: sendEHCCommunicationRequest
+      operationId: sendEHCCommunicationOpenRequest
       summary: (sendEHCCommunicationRequest) Send todo ....
       externalDocs:
         description: 'gemSpec_popp_service, Kapitel 3.3.2 Authentisierung des Versicherten mit eGK (mobil)'
         url: https://gemspec.gematik.de/docs/gemSpec/
-      description: | 
-        todo
+      description: send a request to get an access token for open the communicatin to the popp-server
 
       requestBody:
         description: >-
