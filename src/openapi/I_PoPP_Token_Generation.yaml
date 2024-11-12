@@ -271,7 +271,7 @@ components:
             - ehc-provider-cvc-authenticated-database-hash
             - ehc-provider-user-x509
             - ehc-provider-owner-x509
-        patientPoofTime:
+        patientProofTime:
           type: integer
           description: |
             The time the patient proof was performed, interpreted as described in
@@ -300,7 +300,7 @@ components:
         - version
         - iat
         - proofMethod
-        - patientPoofTime
+        - patientProofTime
         - patientId
         - insurerId
         - actorId
@@ -310,7 +310,7 @@ components:
           iss: "https://popp.example.com"
           iat: 1722593256
           proofMethod: "ehc-practitioner-trustedchannel-read-x509"
-          patientPoofTime: 1722593255
+          patientProofTime: 1722593255
           patientId: "X123456789"
           insurerId: "123456789"
           actorId: "1-2012345678"
