@@ -3,22 +3,24 @@ info:
   title: PoPP Token Generation API healthcare practitioners software
   version: 0.0.1
   description: |
-    This interface provides access to PoPP Token Generation API to be used by healthcare
-    practitioners software systems (Primärsysteme).
-    It defines the request, responses and other messages exchanged between the client and the server
-    to generate a PoPP token. 
+    This interface provides access to PoPP Token Generation API to be used by 
+    healthcare practitioners software systems (Primärsysteme). It defines the 
+    request, responses and other messages exchanged between the client and the 
+    server to generate a PoPP token. 
 
 paths:
   /popp/practitioner/api/v1/token-generation-ehc:
     summary: WebSocket endpoint for PoPP Token Generation 
     description: |
-      This endpoint allows the client to establish a WebSocket connection to the server and transmit
-      messages to generate a PoPP token using the eHealth-Card.
+      This endpoint allows the client to establish a WebSocket connection to the
+      server and transmit messages to generate a PoPP token using the 
+      eHealth-Card.
     get:
       summary: |
-        Establish WebSocket Connection. 
-        Note: The actual connection is established using the WebSocket protocol (wss://) and not via
-        regular HTTP GET.
+        Establish WebSocket Connection.
+         
+        Note: The actual connection is established using the WebSocket protocol 
+        (wss://) and not via regular HTTP GET.
       operationId: connect
       responses:
         '101':
