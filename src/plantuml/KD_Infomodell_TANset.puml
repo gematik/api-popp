@@ -1,0 +1,79 @@
+@startuml
+skinparam Shadowing false
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+
+skinparam sequence {
+    ArrowColor DodgerBlue
+    ActorBorderColor DodgerBlue
+    LifeLineBorderColor Blue
+
+    ParticipantBackgroundColor #3483eb
+    ParticipantBorderColor #3483eb
+    ParticipantFontSize 14
+    ParticipantFontColor White
+
+    ActorBackgroundColor #3483eb
+    ActorFontSize 14
+    NoteBackgroundColor #3483eb
+}
+
+title TAN system
+
+skinparam class {
+    ArrowColor #darkblue
+    BorderColor black
+}
+
+class TANsetHolder << client >>{
+	TANset
+	initTANset()
+	getTAN()
+}
+
+class TANPresenter << client >>{
+    TANsetHolder
+    state
+    presentTAN()
+}
+
+class TANServer << resource server >> {
+    TANsetRecord[]
+    t.b.d.api-methods()
+
+}
+
+class TANsetRecord << resource persistence >>{
+TANset
+KVNR
+IKNR
+    create_TANsetRecord()
+    read_TANsetRecord()
+    update_TANsetRecord()
+    delete_TANsetRecord()
+}
+
+class TANGenerator << HSM >> {
+    generateRandomNumber()
+}
+
+class TANset << common >>{
+    TAN[]
+    capacity
+    validity
+    createTANset()
+}
+
+class TAN <<common >>{
+}
+
+
+TANServer o-- TANsetRecord
+TANPresenter *-- TANsetHolder
+TANsetRecord  o-- TANset
+TANset o-- TAN
+TANset -- TANGenerator
+
+
+@enduml
