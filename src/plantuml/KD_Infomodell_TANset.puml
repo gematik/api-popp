@@ -38,7 +38,7 @@ class TANPresenter << client >>{
     presentTAN()
 }
 
-class TANServer << resource server >> {
+class TANServer << protected resource server >> {
     TANsetRecord[]
     t.b.d.api-methods()
 
@@ -48,21 +48,24 @@ class TANsetRecord << resource persistence >>{
 TANset
 KVNR
 IKNR
+issuedAt
+expires
     create_TANsetRecord()
     read_TANsetRecord()
     update_TANsetRecord()
     delete_TANsetRecord()
 }
 
-class TANGenerator << HSM >> {
-    generateRandomNumber()
-}
-
 class TANset << common >>{
     TAN[]
     capacity
-    validity
+    validFrom
+    validTo
     createTANset()
+}
+
+class TANGenerator << HSM >> {
+    generateRandomNumber()
 }
 
 class TAN <<common >>{
