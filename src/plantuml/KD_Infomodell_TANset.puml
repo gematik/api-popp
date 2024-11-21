@@ -35,11 +35,13 @@ class TANsetHolder << client >>{
 class TANPresenter << client >>{
     TANsetHolder
     state
-    presentTAN()
+    presentGenericTAN()
+    presentSpecificTAN(TelematikID)
 }
 
 class TANServer << protected resource server >> {
     TANsetRecord[]
+    config
     t.b.d.api-methods()
 
 }
@@ -47,7 +49,7 @@ class TANServer << protected resource server >> {
 class TANsetRecord << resource persistence >>{
 TANset
 KVNR
-IKNR
+TelematikID
 issuedAt
 expires
     create_TANsetRecord()
