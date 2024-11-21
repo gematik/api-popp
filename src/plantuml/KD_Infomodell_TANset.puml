@@ -49,6 +49,7 @@ class TANServer << protected resource server >> {
 class TANsetRecord << resource persistence >>{
 TANset
 KVNR
+IKNR
 TelematikID
 issuedAt
 expires
