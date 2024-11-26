@@ -62,7 +62,7 @@ tags:
    Authenticating a user against the IDP is a task of the authenticator belonging to the IDP on the insured person’s device. 
 
    A successful login provides an popp-fdv access token and causes an authorized user allowing access to the 
-   protected resource (PoPP-Service) to get an OTP-Challenge.
+   protected resource (PoPP-Service) to get a TAN-Set.
 
 - name: Authorization eHealth-Card
   description: |
@@ -70,7 +70,7 @@ tags:
    The popp authorization server generate an card-communication access token. Popp-fdv use card-communication access token for communication with popp-service
    to read data from eHealth-Card.
    
-   A successful evaluation of eHealth-Card data provides an OTP-Challenge.    
+   A successful evaluation of eHealth-Card data provides a TAN-Set.    
   
 externalDocs:
   description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_FdV'
