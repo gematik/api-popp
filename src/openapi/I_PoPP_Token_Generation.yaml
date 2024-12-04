@@ -303,10 +303,9 @@ components:
         Schema for the claims of a PoPP token as contained in the JWT.
       properties:
         version:
-          type: integer
+          type: string
           description: |
             The version of the PoPP token format.
-          const: 1
         iss:
           type: string
           description: |
