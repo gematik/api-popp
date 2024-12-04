@@ -88,44 +88,37 @@ components:
         - cardConnectionType
         - clientSessionId
 
-    # Note 1: The client indicates in "StartMessage -> cardConnectionType" if
-    #         the eHC is connected to an eHealth-Cardterminal ("...-connector")
-    #         or not ("...-standard").
-    # Note 2: In case of "...-connector" the server will send a signed scenario
-    #         which the client forwards to a connector in a message of type
-    #         "ScenarioMessageSigned".
-    # Note 3: In case of "...-standard" the server will send a scenario which
-    #         the client will send to a smart card. Here the server sends a
-    #         message of type "ScenarioMessageArray".
-    # Alternative: It is possible to combine "ScenarioMessageArray" and
-    #         "ScenarioMessageSigned" by
-    #          a. renaming "ScenarioMessageArray" into "ScenarioMessage" and
-    #          b. stating, that in case the array has just element, that element
-    #             contains a signed scenario to be sent to a connector.
-    # TODO: Decide which approach is better: The present content of this file or
-    #          the alternative solution outlined in the above notes and this
-    #          comment.
-
-    ScenarioMessageArray:
+    ScenarioMessage:
       type: object
       title: "Bunch of commands to be executed by an eHC"
       description: |
-        Sent by the server only and only if the client indicated in its
-        "StartMessage -> cardConnectionType" either
-        - "contact-standard" or
-        - "contactless-standard".
+        Sent by the server to the client to execute a scenario on 
+        the eHealth-Card. Based on the cardConnectionType indicated in the
+        prior StartMessage the server will provide either a scenario as an 
+        array or a signed and encoded string.
+
+        If the client indicated in its "StartMessage -> cardConnectionType" that
+        the eHC is connected using a standard card reader ("...-standard"), 
+        then the server will send a scenario as an array in `scenario` property.
+
+        If the client indicated in its "StartMessage -> cardConnectionType" that
+        the eHC is connected using a eHealth-Cardterminal and connector 
+        ("...-connector"), then the server will send a signed scenario as a string 
+        `signedScenario` property.
+
+        Either `scenario` or `signedScenario` is present, but not both.
       properties:
         type:
           type: string
-          const: "ScenarioArray"
-          description: "The constant type identifier for ScenarioArray."
+          const: "Scenario"
+          description: "The constant type identifier for Scenario Message"
         scenario:
           type: array
           items:
             type: string
             description: |
               hexadecimal characters [0-9a-f] either encoding expected
-              status words or a command APDU
+              status words and command APDU(s)
               
               **Background:**<br>
               A smartcard acts like a server (request-response), waits for
@@ -167,42 +160,30 @@ components:
               1. The 1st element encodes ESW with one status word '9000'=NoError.
               2. The 2nd element selects the master file (MF) of a smartcard.
               3. The 3rd element reads from offset='02' 3='03' bytes from
-                 EF.Version2.
+                EF.Version2.
               4. The 4th element encodes ESW with two status words:
-                 a. '9000'=NoError
-                 b. '6281'=CorruptDataWarning
+                a. '9000'=NoError
+                b. '6281'=CorruptDataWarning
               5. The 5th element reads the content of EF.C.eGK.AUT_CVC.E256.
-      required:
-        -type
-        -scenario
-      examples:
-        - type: "ScenarioArray"
-          scenario: [ "9000", "00a4040c", "00b0910203", "90006281", "00b0860000" ]
-
-    ScenarioMessageSigned:
-      type: object
-      title: "Bunch of commands to be forwarded to a connector"
-      description: |
-        Base64 encoded BER-TLV structure,
-        sent by the server only and only if the clinet indicated in its 
-        "StartMessage -> cardConnectionType" either
-        - "contact-connector" or
-        - "contactless-connector".
-        
-        The client forwards the signed message to a connector. The connector
-        executes the scenario with a smartcard attached to an
-        eHealth-Cardterminal.
-      properties:
-        type:
+        signedScenario:
           type: string
-          const: "ScenarioSigned"
-          description: "The constant type identifier for ScenarioSigned."
-        encoded:
-          type: string
-          description: "The encoded and signed scenario data."
+          description: |
+            Base64 encoded BER-TLV structure, sent by the server only and only
+            if the client indicated in its "StartMessage -> cardConnectionType"
+            either
+            - "contact-connector" or
+            - "contactless-connector".
+            
+            The client forwards the signed message to a connector. The connector
+            executes the scenario with a smartcard attached to an
+            eHealth-Cardterminal.
       required:
         - type
-        - encoded
+      examples:
+        - type: "Scenario"
+          scenario: [ "9000", "00a4040c", "00b0910203", "90006281", "00b0860000" ]
+        - type: "Scenario"
+          signedScenario: "QkVSLVRMVgo="
 
     ScenarioResponseMessage:
       type: object
@@ -313,7 +294,7 @@ components:
         - typ: "vnd.telematik.popp+jwt"
           alg: "ES256"
           kid: "x_vW4LVDipvu8iUQ5alKsZLWtH6jh4eJ4c5offXtMV0"
-          x5c: [ "MIIBI...", "MIIBI..." ]
+          x5c: [ "MIIBI..." ]
     # PoPP Token Claims
     TokenClaims:
       type: object
