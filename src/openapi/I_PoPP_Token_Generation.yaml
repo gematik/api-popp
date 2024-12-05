@@ -118,7 +118,7 @@ components:
             type: string
             description: |
               hexadecimal characters [0-9a-f] either encoding expected
-              status words and command APDU(s)
+              status words or command APDU(s)
               
               **Background:**<br>
               A smartcard acts like a server (request-response), waits for
