@@ -56,19 +56,19 @@ components:
           description: |
             The type of smartcard connection the client claims to use:
             
-            * contactStandard: contact based smartcard communication using
+            * "contact-standard": contact based smartcard communication using
             ISO/IEC 7816-3 protocol T=1,
             connector is not involved in the communication with eHC
             
-            * contactlessStandard: contactless smartcard communication using
+            * "contactless-standard": contactless smartcard communication using
             a protocol from ISO/IEC 14443 series,
             connector is not involved in the communication with eHC
             
-            * contactConnector: contact based smartcard communication using
+            * "contact-connector": contact based smartcard communication using
             ISO/IEC 7816-3 protocol T=1,
             a connector communicates with the eHC via an eHCT
             
-            * contactlessConnector: contactless smartcard communication using
+            * "contactless-connector": contactless smartcard communication using
             a protocol from ISO/IEC 14443 series,
             a connector communicates with the eHC via an eHCT
         clientSessionId:
@@ -92,17 +92,18 @@ components:
       type: object
       title: "Bunch of commands to be executed by an eHC"
       description: |
-        Sent by the server to the client to execute a scenario on 
-        the eHealth-Card. Based on the cardConnectionType indicated in the
+        Sent by the server to the client to execute a scenario on the
+        eHealth-Card (eHC). Based on the cardConnectionType indicated in the
         prior StartMessage the server will provide either a scenario as an 
         array or a signed and encoded string.
 
         If the client indicated in its "StartMessage -> cardConnectionType" that
         the eHC is connected using a standard card reader ("...-standard"), 
-        then the server will send a scenario as an array in `scenario` property.
+        then the server will send a scenario as an array in `scenario` property
+        where the array has at least two elements.
 
         If the client indicated in its "StartMessage -> cardConnectionType" that
-        the eHC is connected using a eHealth-Cardterminal and connector 
+        the eHC is connected using a eHealth-Cardterminal (eHCT) and connector 
         ("...-connector"), then the server will send a signed scenario as a string 
         `signedScenario` property.
 
@@ -142,29 +143,39 @@ components:
               one or more status words combined into expectedStatusWords (ESW).
               
               **Layout of the array:**<br>
-              The first element in the array always contains ESW. ESW indicates
-              the expected status words of a smartcard for normal operation.
-              ESW remains valid until it is overwritten by a later array element
-              containing ESW.
+              The first element in the array (if present) contains ESW. ESW
+              indicates the expected status words of a smartcard for normal
+              operation.
+              The status words in an ESW indicate what status words are expected
+              and possibly occur during normal operation for the following
+              command APDU. If another array element contains ESW, then the
+              status words from that ESW replaces the expected status word(s)
+              from a former ESW.
               Each array element, which is not ESW, contains a command APDU to
-              be sent to a smartcard. If the status word in the response APDU is
-              not element in ESW, then an error occurred and it is worthless to
-              continue with further command APDU.
+              be sent to a smartcard. If the status word in the corresponding
+              response APDU is not element in ESW, then an error occurred and it
+              is worthless to continue with further command APDU.
               If an array element has a most significant nibble of value '6' or
               '9' then that array element encodes ESW, otherwise that array
               element encoded a command APDU.
               
               **Explaining example 1:**<br>
-              The purpose of example 1 is to show how the array "scenario" is
+              The purpose of example 1 is to show how the array `scenario` is
               encoded. Thus, the focus is not to do something meaningfull.
               1. The 1st element encodes ESW with one status word '9000'=NoError.
-              2. The 2nd element selects the master file (MF) of a smartcard.
-              3. The 3rd element reads from offset='02' 3='03' bytes from
-                EF.Version2.
-              4. The 4th element encodes ESW with two status words:
+                This status words indicates the expected status word if the
+                following command APDU are processed by a smart card for normal
+                operation.
+              2. The 2nd element is a command APDU (SELECT) for selecting the
+                master file (MF) of a smartcard.
+              3. The 3rd element is a command APDU (READ BINARY) for reading from
+                offset='02' 3='03' bytes from EF.Version2.
+              4. The 4th element encodes ESW with two status words. These two
+                status words replace the status word(s) from a former ESW:
                 a. '9000'=NoError
                 b. '6281'=CorruptDataWarning
-              5. The 5th element reads the content of EF.C.eGK.AUT_CVC.E256.
+              5. The 5th element is a command APDU (READ BINARY) for reading the
+                content of EF.C.eGK.AUT_CVC.E256.
         signedScenario:
           type: string
           description: |
