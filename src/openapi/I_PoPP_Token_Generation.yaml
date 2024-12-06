@@ -1,5 +1,5 @@
 openapi: 3.1.0
-info: 
+info:
   title: PoPP Token Generation API healthcare practitioners software
   version: 0.0.1
   description: |
@@ -10,7 +10,7 @@ info:
 
 paths:
   /popp/practitioner/api/v1/token-generation-ehc:
-    summary: WebSocket endpoint for PoPP Token Generation 
+    summary: WebSocket endpoint for PoPP Token Generation
     description: |
       This endpoint allows the client to establish a WebSocket connection to the
       server and transmit messages to generate a PoPP token using the 
@@ -48,7 +48,7 @@ components:
             Server is expected to support this version.
         cardConnectionType:
           type: string
-          enum: 
+          enum:
             - "contact-standard"
             - "contact-connector"
             - "contactless-standard"
@@ -56,19 +56,19 @@ components:
           description: |
             The type of smartcard connection the client claims to use:
             
-            * contactStandard: contact based smartcard communication using
+            * "contact-standard": contact based smartcard communication using
             ISO/IEC 7816-3 protocol T=1,
             connector is not involved in the communication with eHC
             
-            * contactlessStandard: contactless smartcard communication using
+            * "contactless-standard": contactless smartcard communication using
             a protocol from ISO/IEC 14443 series,
             connector is not involved in the communication with eHC
             
-            * contactConnector: contact based smartcard communication using
+            * "contact-connector": contact based smartcard communication using
             ISO/IEC 7816-3 protocol T=1,
             a connector communicates with the eHC via an eHCT
             
-            * contactlessConnector: contactless smartcard communication using
+            * "contactless-connector": contactless smartcard communication using
             a protocol from ISO/IEC 14443 series,
             a connector communicates with the eHC via an eHCT
         clientSessionId:
@@ -90,23 +90,111 @@ components:
 
     ScenarioMessage:
       type: object
-      title: | 
-        Sent by the server as a request to the client to execute a scenario on 
-        the smartcard.
+      title: "Bunch of commands to be executed by an eHC"
       description: |
-        Base64 encoded BER-TLV structure containing the scenario
-        to be executed by the smartcard
+        Sent by the server to the client to execute a scenario on the
+        eHealth-Card (eHC). Based on the cardConnectionType indicated in the
+        prior StartMessage the server will provide either a scenario as an 
+        array or a signed and encoded string.
+
+        If the client indicated in its "StartMessage -> cardConnectionType" that
+        the eHC is connected using a standard card reader ("...-standard"), 
+        then the server will send a scenario as an array in `scenario` property
+        where the array has at least two elements.
+
+        If the client indicated in its "StartMessage -> cardConnectionType" that
+        the eHC is connected using a eHealth-Cardterminal (eHCT) and connector 
+        ("...-connector"), then the server will send a signed scenario as a string 
+        `signedScenario` property.
+
+        Either `scenario` or `signedScenario` is present, but not both.
       properties:
         type:
           type: string
           const: "Scenario"
-          description: "The constant type identifier for Scenario."
-        encoded:
+          description: "The constant type identifier for Scenario Message"
+        scenario:
+          type: array
+          items:
+            type: string
+            description: |
+              hexadecimal characters [0-9a-f] either encoding expected
+              status words or command APDU(s)
+              
+              **Background:**<br>
+              A smartcard acts like a server (request-response), waits for
+              commands, executes them and answers with a corresponding response.
+              According to ISO/IEC 7816-3 a response APDU from a smartcards
+              always contains a status word consisting of four nibbles where the
+              most significant nibble is either '6' or '9'.
+              According to [gemSpec_COS] no command APDU has a most significant
+              nibble with values '6' or '9'.
+              
+              **Bunch of command APDU as an array:**<br>
+              To speed up the process of executing smartcard commands successive
+              command APDU are sent together as a scenario to minimize waiting
+              times caused by network latency.
+              
+              **Expected status word:**<br>
+              A smartcard status word possibly indicates errors. If such an
+              error occurs it is worthless to send the remaining command APDUs
+              of a scenario. To help the client to distinguish between normal
+              smartcard operation and error situations a scenario also contains
+              one or more status words combined into expectedStatusWords (ESW).
+              
+              **Layout of the array:**<br>
+              The first element in the array (if present) contains ESW. ESW
+              indicates the expected status words of a smartcard for normal
+              operation.
+              The status words in an ESW indicate what status words are expected
+              and possibly occur during normal operation for the following
+              command APDU. If another array element contains ESW, then the
+              status words from that ESW replaces the expected status word(s)
+              from a former ESW.
+              Each array element, which is not ESW, contains a command APDU to
+              be sent to a smartcard. If the status word in the corresponding
+              response APDU is not element in ESW, then an error occurred and it
+              is worthless to continue with further command APDU.
+              If an array element has a most significant nibble of value '6' or
+              '9' then that array element encodes ESW, otherwise that array
+              element encoded a command APDU.
+              
+              **Explaining example 1:**<br>
+              The purpose of example 1 is to show how the array `scenario` is
+              encoded. Thus, the focus is not to do something meaningfull.
+              1. The 1st element encodes ESW with one status word '9000'=NoError.
+                This status words indicates the expected status word if the
+                following command APDU are processed by a smart card for normal
+                operation.
+              2. The 2nd element is a command APDU (SELECT) for selecting the
+                master file (MF) of a smartcard.
+              3. The 3rd element is a command APDU (READ BINARY) for reading from
+                offset='02' 3='03' bytes from EF.Version2.
+              4. The 4th element encodes ESW with two status words. These two
+                status words replace the status word(s) from a former ESW:
+                a. '9000'=NoError
+                b. '6281'=CorruptDataWarning
+              5. The 5th element is a command APDU (READ BINARY) for reading the
+                content of EF.C.eGK.AUT_CVC.E256.
+        signedScenario:
           type: string
-          description: "The encoded scenario data."
+          description: |
+            Base64 encoded BER-TLV structure, sent by the server only and only
+            if the client indicated in its "StartMessage -> cardConnectionType"
+            either
+            - "contact-connector" or
+            - "contactless-connector".
+            
+            The client forwards the signed message to a connector. The connector
+            executes the scenario with a smartcard attached to an
+            eHealth-Cardterminal.
       required:
         - type
-        - encoded
+      examples:
+        - type: "Scenario"
+          scenario: [ "9000", "00a4040c", "00b0910203", "90006281", "00b0860000" ]
+        - type: "Scenario"
+          signedScenario: "QkVSLVRMVgo="
 
     ScenarioResponseMessage:
       type: object
@@ -120,15 +208,15 @@ components:
           description: "The constant type identifier for ScenarioResponse."
         responses:
           type: array
+          description: |
+            The responses from the smartcard.
+            The 1st element corresponds to the 1st command APDU from a Scenario.
+            The n-th element corresponds to the n-th command APDU from a Scenario.
           items:
             type: string
             description: |
-              Response from the smartcard encoded in hexadecimal characters.
-              Contains at least 4 characters (status word).
-          description: |
-              The responses from the smartcard, one for each command in the 
-              scenario
-
+              Response from the smartcard encoded in hexadecimal characters
+              [0-9a-f]. Contains at least 4 characters (status word).
       required:
         - type
         - responses
@@ -217,7 +305,7 @@ components:
         - typ: "vnd.telematik.popp+jwt"
           alg: "ES256"
           kid: "x_vW4LVDipvu8iUQ5alKsZLWtH6jh4eJ4c5offXtMV0"
-          x5c: [ "MIIBI...", "MIIBI..." ]
+          x5c: [ "MIIBI..." ]
     # PoPP Token Claims
     TokenClaims:
       type: object
@@ -226,11 +314,10 @@ components:
         Schema for the claims of a PoPP token as contained in the JWT.
       properties:
         version:
-          type: integer
+          type: string
           description: |
             The version of the PoPP token format.
-          const: 1
-        iss: 
+        iss:
           type: string
           description: |
             The issuer of the token. The value must be the URL of the PoPP 
@@ -286,15 +373,15 @@ components:
             This way it is possible to distinguish between the owner of the eHC
             (card-holder) and a user of the eHC (deputy, agent, proxy).
           enum:
-            - healthid
-            - ehc-practitioner-trustedchannel-read-x509
-            - ehc-practitioner-cvc-authenticated-database-hash
-            - ehc-practitioner-user-x509
-            - ehc-practitioner-owner-x509
-            - ehc-provider-trustedchannel-read-x509
-            - ehc-provider-cvc-authenticated-database-hash
-            - ehc-provider-user-x509
-            - ehc-provider-owner-x509
+            - "healthid"
+            - "ehc-practitioner-trustedchannel-read-x509"
+            - "ehc-practitioner-cvc-authenticated-database-hash"
+            - "ehc-practitioner-user-x509"
+            - "ehc-practitioner-owner-x509"
+            - "ehc-provider-trustedchannel-read-x509"
+            - "ehc-provider-cvc-authenticated-database-hash"
+            - "ehc-provider-user-x509"
+            - "ehc-provider-owner-x509"
         patientProofTime:
           type: integer
           description: |
@@ -348,4 +435,3 @@ components:
           tokenUrl: https://auth.example.com/token
           scopes:
             token:generate: Generate PoPP tokens
-      
