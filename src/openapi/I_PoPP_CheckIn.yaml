@@ -407,7 +407,7 @@ components:
           type: "string"
           example: "myPoPPFdVGeneratedState"
         redirect_uri:
-          description: Destination URL for the authorization code. The authorization code is used to redeem against an access token used in the Popp authorization server.
+          description: Destination URL for the authorization code. The application needs to send the authorization code to the Popp application server. The PoPP application server uses the authorization code to redeem an ID token at the sectoral IDP.
           type: "string"
           example: "https://myApplication.de"
         code_challenge:

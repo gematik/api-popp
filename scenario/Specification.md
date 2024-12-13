@@ -3,8 +3,9 @@
 # Introduction
 
 This file specifies a request and the corresponding response. The request
-contains a <a href="#Scenario">Scenario</a> and is sent to a Konnektor. The
-Konnektor generates the corresponding response.
+contains a <a href="#Scenario">Scenario</a> and is sent by a PoPP-Client to a
+Konnektor. The Konnektor generates the corresponding response and sends that
+response back to the PoPP-Client.
 
 ## Scenario
 
@@ -20,21 +21,21 @@ countermeasures for reply attack are necessary.
 
 It follows that a "Scenario" contains the following information:
 
-1. **Version:** an integer in range [0, 127] defining how to decode information.
-2. **SessionID:** a 128-bit octet string identifying a session consisting of
+1. **version:** an integer in range [0, 127] defining how to decode information.
+2. **sessionID:** a 128-bit octet string identifying a session consisting of
    one or more "Scenario", a SessionID may be a Universally Unique Identifier
    (UUID) according to [RFC 4122][].
-3. **SequenceCounter**: an integer in range [0, 32767] preventing reply attacks
+3. **sequenceCounter**: an integer in range [0, 32767] preventing reply attacks
    within a sequence of "Scenarios" i.e., a group of more than one "Scenario"
    where all those "Scenarios" share the same SessionID. The first "Scenario" in
    a sequence has a SequenceCounter set to zero. The SequenceCounter in the next
    "Scenario" is incremented by one.
-4. **TimeSpan:** an integer in range [0, 32767] time span between sending the
-   result of a scenario till the (expected) arrival time of the next "Scenario".
-   Here the Konnektor uses this information to detect a timeout.
-   The special value zero in a "Scenario" indicates that this is the last
-   "Scenario" in a sequence.
-5. **Scenario7816**: see <a href="#scenario7816">Scenario7816</a>.
+4. **timeSpan:** an integer in range [0, 32767] time span in milliseconds
+   between sending the result of a scenario till the (expected) arrival time of
+   the next "Scenario". Here the Konnektor uses this information to detect a
+   timeout. The special value zero in a "Scenario" indicates that this is the
+   last "Scenario" in a sequence.
+5. **scenario7816**: see <a href="#scenario7816">Scenario7816</a>.
 
 For security reasons, a "scenario" is signed by a "producer" (here the
 PoPP-Service). Thus, before signing a "Scenario" has to be serialized.
@@ -54,21 +55,17 @@ where the serialized "Scenario" is the signed content.
 
 Basically a "Scenario7816" contains a list of ISO/IEC 7816-4 command APDU which
 are intended to be sent to a smartcard. It makes no sense to continue a
-"Scenario7816" in case the "consumer" behaves unexpectedly. Furthermore, to
-support debugging and testing, it is possible to include logging information.
+"Scenario7816" in case the "consumer" behaves unexpectedly.
 
 It follows that a "Scenario7816" contains the following information:
 
-1. **Version:** An integer in range [0, 127] defining how to decode information.
-2. **List:** A list with zero, one or more elements of the following types:
-   1. **ExpectedStatusWords (ESW)**: a list of expected status words, in case a
-      smartcard returns a response APDU where the status word of that response
-      APDU is not in the list of the expected status words it makes no sense to
-      continue the "Scenario7816".
-   2. **CommandAPDU:** an octet string with an ISO/IEC 7816-4 command APDU.
-   3. **LoggingInformation:** an object with the following attributes:
-      1. **LogLevel:** an integer representation of a [log level][].
-      2. **LogMessage:** an [UTF-8][] string.
+1. **versionList:** An integer in range [0, 127] defining how to decode information.
+2. **list:** A list with zero, one or more elements of the following types:
+   1. **expectedStatusWords (ESW)**: a list of expected status words, concatenated
+      without delimiter, in case a smartcard returns a response APDU where the
+      status word of that response APDU is not in the list of the expected status
+      words it makes no sense to continue the "Scenario7816".
+   2. **commandAPDU:** an octet string with an ISO/IEC 7816-4 command APDU.
 
 ## Version 0
 
@@ -77,15 +74,15 @@ It follows that a "Scenario7816" contains the following information:
 For version 0 a "Scenario" is an [ASN.1][] structure and uses [DER][] for
 encoding and decoding. Hereafter the serialized form is specified:
 
-1. A "Scenario" **SHALL** be a DER SEQUENCE data object with tag 0x30 = '30'
+1. A "Scenario" **SHALL** be a SEQUENCE data object with tag 0x30 = '30'
    where the sequence consists of five elements.
-   1. The first element **SHALL** be a DER INTEGER data object with tag 0x02 =
+   1. The first element **SHALL** be an  INTEGER data object with tag 0x02 =
       '02' encoding the version number.
-   2. The second element **SHALL** be a DER OCTETSTRING data object with tag
+   2. The second element **SHALL** be an OCTET STRING data object with tag
       0x04 = '04' where the value-field contains a (unique) SessionID.
-   3. The third element **SHALL** be a DER INTEGER data object with tag 0x02 =
-      '02' encoding the SequenceCounter.
-   4. The fourth element **SHALL** be a DER INTEGER data object with tag 0x02 =
+   3. The third element **SHALL** be an INTEGER data object with tag 0x02 =
+      '02' encoding the sequenceCounter.
+   4. The fourth element **SHALL** be an INTEGER data object with tag 0x02 =
       '02' encoding the time span in milliseconds.
    5. The fifth element **SHAll** be an encoded "Scenario7816", see below.
 
@@ -94,29 +91,22 @@ encoding and decoding. Hereafter the serialized form is specified:
 For version 0 a "Scenario7816" is an [ASN.1][] structure and uses [DER][] for
 encoding and decoding. Hereafter the serialized form is specified:
 
-1. A "Scenario7816" **SHALL** be a DER SEQUENCE data object with tag 0x30 = '30'
+1. A "Scenario7816" **SHALL** be a SEQUENCE data object with tag 0x30 = '30'
    where the sequence consists of two elements.
-   1. The first element **SHALL** be a DER INTEGER data object with tag 0x02 =
+   1. The first element **SHALL** be an INTEGER data object with tag 0x02 =
       '02' encoding the version number.
-   2. The second element **SHALL** be a DER SEQUENCE data object with tag 0x30 =
-      '30' where the sequence contains zero, one or more elements of a _list_.
+   2. The second element **SHALL** be a SEQUENCE OF data object with tag 0x30 =
+      '30' where the sequence contains zero one or more elements of a _list_.
    3. That _list_ **SHALL NOT** contain elements with tags not element of
-      {'04', '30', '31'}.
-   4. The first element in _list_ (if present) **SHALL** be a data object with
-      tag 0x30 = '30' (expected status words).
+      {'04', '30'}.
+   4. The first element in _list_ **SHALL** be a data object with tag 0x30 = '30'
+      (expected status words).
    5. The elements in _list_ **SHALL** be encoded and interpreted as follows:
-      1. DER SEQUENCE data object with tag 0x30 = '30' where the sequence
-         consists of one or more elements of DER INTEGER data objects with tag
+      1. SEQUENCE OF data object with tag 0x30 = '30' where the sequence
+         consists of one or more elements of INTEGER data objects with tag
          0x02 = '02' encoding an expected status word.
-      2. DER OCTETSTRING data object with tag 0x04 = '04' where the value-field
+      2. OCTET STRING data object with tag 0x04 = '04' where the value-field
          contains an ISO/IEC 7816-4 command APDU.
-      3. DER SET data object with tag 0x31 = '31' with the following children:
-         - DER INTEGER data object with tag 0x02 = '02' with a [log level][]
-         - DER UTF8String data object with tag 0x0c = '0c' with a log message
-2. The "consumer" of a "Scenario7816" **MAY** use the information from a SET data
-   object with tag 0x31 = '31' within _list_ for logging information.
-3. The "consumer" of a "Scenario7816" **MAY** completely ignore SET data objects
-   with tag 0x31 = '30' from the _list_ in a "Scenario7816".
 
 ### Example 1
 
@@ -131,13 +121,11 @@ TimeSpan        = 1000 ms
 Scenario7816    = {
   Version = 0
   list = {
-    expectedStatusWords: {'9000' = NoError, '6a81' = CorruptDataWarning}
-    loggingInformation:  {INFO, "Select MF"}
+    expectedStatusWords: {'9000' = NoError}
     commandApdu: '00 a4 040c' = SELECT MF, see gemSpec_COS (N040.800)
-    loggingInformation:  {DEBUG, "read EF.GDO"}
-    commandApdu. '00 b0 8200 00' = READ BINARY, shortFileIdentifier=2, offset=0, Ne<=256
-    loggingInformation:  {DEBUG, "read EF.ATR"}
-    commandApdu. '00 b0 9d00 00' = READ BINARY, shortFileIdentifier=2, offset=0, Ne<=256
+    commandApdu. '00 b0 9102 03' = READ BINARY, shortFileIdentifier=17, offset=2, Ne=3
+    expectedStatusWords: {'9000' = NoError, '6281' = CorruptDataWarning}
+    commandApdu. '00 b0 8600 00' = READ BINARY, shortFileIdentifier=6, offset=0, Ne<=256
   }
 }  
 ```
@@ -146,29 +134,22 @@ _**Note:** Non-hexadecimal characters in the following output and line feeds are
 shown only for better reading. Everything after a #-character explains the line._
 
 ```
-30 76                                     # SEQUENCE with 5 elements
+30 49                                     # SEQUENCE with 5 elements
 |  02 01 00                               #   INTEGER := 0, version of Scenario
-|  04 10 000102030405060708090a0b0c0d0e0f #   OCTETSTRING with SessionID
-|  02 01 2a                               #   INTEGER := 42, SequenceNumber
-|  02 02 03e8                             #   INTEGER := 1000, TimeSpan
-|  30 58                                  #   SEQUENCE with 2 elements, Scenario7816
+|  04 10 000102030405060708090a0b0c0d0e0f #   OCTET STRING with sessionId
+|  02 01 2a                               #   INTEGER := 42, sequenceCounter
+|  02 02 03e8                             #   INTEGER := 1000, timeSpan
+|  30 2b                                  #   SEQUENCE with 2 elements
 |  |  02 01 00                            #     INTEGER := 0, version of Scenario7816
-|  |  30 53                               #     SEQUENCE with 7 elements, list
-|  |  |  30 09                            #       SEQUENCE with 2 elements
-|  |  |  |  02 03 009000                  #         INTEGER := 36864
-|  |  |  |  02 02 6281                    #         INTEGER := 25217
-|  |  |  31 0e                            #       SET with 2 elements
-|  |  |  |  02 01 14                      #         INTEGER := 20
-|  |  |  |  0c 09 53656c656374204d46      #         UTF8String := "Select MF"
-|  |  |  04 04 00a4040c                   #       OCTETSTRING with 1st command APDU
-|  |  |  31 10                            #       SET with 2 elements
-|  |  |  |  02 01 0a                      #         INTEGER := 10
-|  |  |  |  0c 0b 726561642045462e47444f  #         UTF8String := "read EF.GDO"
-|  |  |  04 05 00b0820000                 #       OCTETSTRING with 2nd command APDU
-|  |  |  31 10                            #       SET with 2 elements
-|  |  |  |  02 01 0a                      #         INTEGER := 10
-|  |  |  |  0c 0b 726561642045462e415452  #         UTF8String := "read EF.ATR"
-|  |  |  04 05 00b09d0000                 #       OCTETSTRING with 3rd command APDU
+|  |  30 26                               #     SEQUENCE with 5 elements, list
+|  |  |  30 05                            #       SEQUENCE with 1 element, ESW
+|  |  |  |  02 03 009000                  #         INTEGER := 36864 = NoError
+|  |  |  04 04 00a4040c                   #       OCTET STRING with 1st command APDU
+|  |  |  04 05 00b0910203                 #       OCTET STRING with 2nd command APDU
+|  |  |  30 09                            #       SEQUENCE with 2 elements, ESW
+|  |  |  |  02 03 009000                  #         INTEGER := 36864 = NoError
+|  |  |  |  02 02 6281                    #         INTEGER := 25217 = CorruptDataWarning
+|  |  |  04 05 00b0860000                 #       OCTET STRING with 3rd command APDU
 ```
 
 ## Example 2
@@ -193,7 +174,7 @@ shown only for better reading. Everything after a #-character explains the line.
 ```
 30 21                                     # SEQUENCE with 5 elements
 |  02 01 00                               #   INTEGER := 0, version of Scenario
-|  04 10 000102030405060708090a0b0c0d0e0f #   OCTETSTRING with SessionID
+|  04 10 000102030405060708090a0b0c0d0e0f #   OCTET STRING with SessionID
 |  02 01 54                               #   INTEGER := 84, Sequencenumber
 |  02 01 00                               #   INTEGER := 0, TimeSpan
 |  30 05                                  #   SEQUENCE with 2 elements
@@ -208,9 +189,9 @@ smartcard returns a corresponding response APDU. Hereafter the serialized form
 is specified:
 
 1. A collection of response APDU corresponding to a "Scenario7816" **SHALL** be
-   a DER SEQUENCE data object with tag 0x30 = '30' where the sequence consists
+   a SEQUENCE OF data object with tag 0x30 = '30' where the sequence consists
    of zero, one or more elements.
-2. Each element in the sequence **SHALL** be a DER OCTETSTRING data object with
+2. Each element in the sequence **SHALL** be an OCTET STRING data object with
    tag 0x04 = '04' where the value-field contains an ISO/IEC 7816-4 response
    APDU.
 3. The i-th element in the sequence **SHALL** be the response APDU corresponding
@@ -218,7 +199,7 @@ is specified:
 
 **Example 1:** Assuming the "Scenario7816" from example 1 above is sent to a
 smartcard and the smartcard responded with '6a82' = FileNotFound to the second
-command APDU (read EF.GDO), then the corresponding response would be:
+command APDU, then the corresponding response would be:
 
 _**Note:** Because the status word of the second response APDU is not in the 
 list of expected status words, no further command APDU is sent to the smartcard.
@@ -227,7 +208,7 @@ Consequently, no further response APDU is present._
 ```
 list = {
   '9000' = NoError      (select MF)
-  '6a82' = FileNotFound (read EF.GDO)
+  '6a82' = FileNotFound (read command)
 }
 ```
 
@@ -236,8 +217,8 @@ shown only for better reading. Everything after a #-character explains the line.
 
 ```
 30 08         # SEQUENCE with 2 elements
-|  04 02 9000 #   OCTETSTRING with response APDU to 1st command APDU
-|  04 02 6a82 #   OCTETSTRING with response APDU to 2nd command APDU
+|  04 02 9000 #   OCTET STRING with response APDU to 1st command APDU
+|  04 02 6a82 #   OCTET STRING with response APDU to 2nd command APDU
 ```
 
 
