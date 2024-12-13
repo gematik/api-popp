@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   title: PoPP Token Generation API healthcare practitioners software
   version: 0.0.1
@@ -29,6 +29,31 @@ paths:
           description: Bad request - unable to establish connection
       security:
         - oauth2Profiles: [ "token:generate" ]
+
+  /popp/practitioner/api/v1/token-generation-tan:
+    parameters:
+     - $ref: '#/components/parameters/useragent'
+     - $ref: '#/components/parameters/tan'
+      
+    get:
+      operationId: getPoPPToken
+      summary: Create and send PoPP Token. 
+      description: |
+      This endpoint allows the client to generate a PoPP token using a TAN.
+      security: 
+        - oauth2Profiles: [ "token:generate" ]
+            
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
 
 components:
   schemas:
@@ -426,6 +451,7 @@ components:
           insurerId: "123456789"
           actorId: "1-2012345678"
           actorProfessionOid: "1.2.276.0.76.4.50"
+  
   securitySchemes:
     oauth2Profiles:
       type: oauth2
@@ -435,3 +461,63 @@ components:
           tokenUrl: https://auth.example.com/token
           scopes:
             token:generate: Generate PoPP tokens
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        description: "Information about client software with: ClientId(20 characters) + / + VersionNumber (1 to 15 characters)."
+        type: string
+        pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
+        example: CLIENTID1234567890AB/2.1.12-45
+    tan:
+      name: X-TAN
+      in: header
+      schema:
+        description: "text"
+        type: string
+        example: 123456
+  responses:
+    TokenResponse200:
+      description: HttpStatus.OK (200)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TokenMessage'
+
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+
+    Error403Forbidden:
+      description: HttpStatus.FORBIDDEN (403)
+      content:
+        application/json:
+          example:
+            errorCode: invalAuth
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    
+    Error404NotFound:
+      description: HttpStatus.NOT_FOUND (404)
+      content:
+        application/json:
+          example:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    Error500InternalError:
+      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
