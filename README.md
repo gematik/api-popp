@@ -7,7 +7,7 @@
   <ol>
     <li><a href="#about-the-project">About The Project</a></li>
     <li><a href="#release-notes">Release Notes</a></li>
-    <li><a href="#changelog">Changelog</a></li>
+    <li><a href="#changelog">Changelog</a></li>[ScenearionMessage-Example.json](../../../../../../r/ToBeSorted/ScenearionMessage-Example.json)
     <li><a href="#folder-structure">Folder Structure</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
