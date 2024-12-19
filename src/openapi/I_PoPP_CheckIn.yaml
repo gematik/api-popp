@@ -94,7 +94,7 @@ paths:
         The code challenge method (code_challenge_method) must be “S256”. The response type (response_type) must be "code".<br/>
        
         **Provider**:</br>
-        The poppp authorization server shall send a pushed authorization request (PAR) to the IDP 
+        The popp authorization server shall send a pushed authorization request (PAR) to the IDP 
         (see: gemSpec_IDP_Sek, table "Parameter Pushed Authorization Request").
         To defend against attacks, the popp authorization server must use pkce (Proof Key for Code Exchange) too. 
         The code challenge method (code_challenge_method) must be “S256”. The response type (response_type) must be "code".
@@ -115,7 +115,7 @@ paths:
               
       requestBody:
         description: >-
-            Authorization Request is an OAuth complaint request used Proof Key for Code Exchange by OAuth Public Clients (see https://datatracker.ietf.org/doc/html/rfc763).
+            Authorization Request is an OAuth compliant request used Proof Key for Code Exchange by OAuth Public Clients (see https://datatracker.ietf.org/doc/html/rfc763).
         required: true
         content: 
           application/json:
@@ -249,7 +249,7 @@ paths:
         The parameter grand type (grant_type) must be "authorization_code". <br/>
        
         **Provider**:</br>
-        The poppp authorization server checks the authorization code and the code verifier. Depending on the authorization code  
+        The popp authorization server checks the authorization code and the code verifier. Depending on the authorization code  
         the popp authorization server sends an card-communication access token or a popp-fdv access token to the popp-fdv.  
 
       
