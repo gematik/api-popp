@@ -461,7 +461,7 @@ components:
         tan:
           description: short TAN or long TAN 
           type: string
-          examples: 123456
+          examples: ["123456"]
   
   securitySchemes:
     oauth2Profiles:
