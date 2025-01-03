@@ -279,6 +279,89 @@ paths:
           $ref: '#/components/responses/Error403Forbidden'
         '500':
           $ref: '#/components/responses/Error500InternalError'
+ 
+  /popp/patient/api/tan/v1/tan-request-healthid:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    post:
+      tags:
+        - Authorization Health-ID
+      operationId: generateTAN2KVNR
+      summary: Send request to obtain a TAN or TAN-Set. 
+      description: | 
+        Sends a request against popp resourec server.
+       
+        **Client**:</br>
+        A registered popp-fdv client send a requst against resource server to get a TAN or a TAN-Set.
+        The authorizaton must be "ehealthId-check" Access Token. <br/>
+       
+        **Provider**:</br>
+        The popp resource server checks the "ehealthId-check" Access Token. The popp resource server use the read information 
+        from the Access-Token to create an TANSet-Record.
+        Depending on the informations of the Access-Token the popp resource server create a "short" TAN, or a "long" TAN or
+        a TAN-Set with more then one "long" TAN.
+        Additional the popp resource server timestamps iat and exp for the validity period of the TAN/TAN-Set. 
+              
+        | Conditions | Status code | Error code | Remarks |
+        |------------|-------------|------------|---------|
+        | Successful operation | 200 | successful ||
+        | Request does not match schema | 400 | malformedRequest |  |
+        | "ehealthId-check" Access Token not valid| 401 | unauthorized | popp resource server don't except the Access-Token |
+        | Any other error | 500 | internalError ||
+ 
+      responses:
+        '200':
+          $ref: '#/components/responses/TanResponseHealthId200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '401':
+          $ref: '#/components/responses/Error401UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+      security: 
+        - bearerAuthHealtId: []
+
+  /popp/patient/api/tan/v1/tan-request-ehc:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    post:
+      tags:
+        - Authorization eHealth-Card
+      operationId: generateTAN2EHCCheck
+      summary: Send request to ckeck the eHealth-Card and obtain a TAN. 
+      description: | 
+        Sends a request against popp resourec server.
+       
+        **Client**:</br>
+        A registered popp-fdv client send a requst against resource server to get a TAN after check the eHealth-Card.
+        The authorizaton must be "card-check" Access Token. <br/>
+       
+        **Provider**:</br>
+        The popp resource server checks the "card-check" Access Token. The popp resource server verify the eHealth-Card
+        by direct communication to the card. The popp resource server use the read card information to create an TANSet-Record.
+        Depending on the informations of the Access-Token the popp resource server create a "short" TAN or a "long" TAN.
+        Additional the popp resource server timestamps iat and exp for the validity period of the TAN. 
+              
+        | Conditions | Status code | Error code | Remarks |
+        |------------|-------------|------------|---------|
+        | Successful operation | 200 | successful ||
+        | Request does not match schema | 400 | malformedRequest |  |
+        | "card-check" Access Token not valid| 401 | unauthorized | popp resource server don't except the Access-Token |
+        | Any other error | 500 | internalError ||
+   
+      responses:
+        '200':
+          $ref: '#/components/responses/TanResponseHealthId200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '401':
+          $ref: '#/components/responses/Error401UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+      security: 
+        - bearerAuthEHC: []    
 
 components:
   parameters:
@@ -311,6 +394,9 @@ components:
           - "exp": expiry timestamp (always iat + 120 min)
           - "idNummer": KVNR
           - "organizationID": IK-Nummer
+          - "telematikId": Telematik-ID of a ehealth institution
+          - "poppfdv": Information about registered Popp-FdV
+          - "shortTan": short TAN needed
         - signature contains token signature
       content:
         application/jwt:
@@ -330,11 +416,52 @@ components:
         - payload claims:
           - "iat": issued at timestamp
           - "exp": expiry timestamp (always iat + 120 min)
+          - "telematikId": Telematik-ID of a ehealth institution
+          - "poppfdv": Information about registered Popp-FdV
+          - "shortTan": short TAN needed
         - signature contains token signature
       content:
         application/jwt:
           schema:
             $ref: '#/components/schemas/TokenResponseEHC200Schema'
+          example: 
+            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJhY3RvcklkIjoiQTEyMzQ1Njc4OSIsICJpYXQiOjE3MzY4OTkyMDAsImV4cCI6MTczNjkwNjQwMH0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
+    
+    TanResponseHealthId200:
+      description: |
+        A JSON Web Token (JWT) with following format build according to RFC-7515:</br>
+        base64url (protected_header) + '.' + base64url (payload) + '.' + base64url (signature)"</br>
+        Content for device attestation:</br>
+        - protected_header contains:
+          - "typ": "JWT"
+          - "alg": "ES256" 
+        - payload claims:
+          - "exp": expiry timestamp of the generated TAN/TAN-Set
+          - "tan": generated TAN or TAN-Set
+        - signature contains signature of popp resource server
+      content:
+        application/jwt:
+          schema:
+            $ref: '#/components/schemas/TanResponseHealthId200Schema'
+          example: 
+            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJhY3RvcklkIjoiQTEyMzQ1Njc4OSIsICJpYXQiOjE3MzY4OTkyMDAsImV4cCI6MTczNjkwNjQwMH0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
+     
+    TanResponseEHC200:
+      description: |
+        A JSON Web Token (JWT) with following format build according to RFC-7515:</br>
+        base64url (protected_header) + '.' + base64url (payload) + '.' + base64url (signature)"</br>
+        Content for device attestation:</br>
+        - protected_header contains:
+          - "typ": "JWT"
+          - "alg": "ES256" 
+        - payload claims:
+          - "exp": expiry timestamp of the generated TAN
+          - "tan": generated TAN
+        - signature contains signature of popp resource server
+      content:
+        application/jwt:
+          schema:
+            $ref: '#/components/schemas/TanResponseEHC200Schema'
           example: 
             - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJhY3RvcklkIjoiQTEyMzQ1Njc4OSIsICJpYXQiOjE3MzY4OTkyMDAsImV4cCI6MTczNjkwNjQwMH0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
     
@@ -347,6 +474,15 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorSchema'
 
+    Error401UnauthorizedError:
+      description: HttpStatus.Unauthorized (401)
+      content:
+        application/json:
+          example:
+            errorCode: unauthorized
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+    
     Error403Forbidden:
       description: HttpStatus.FORBIDDEN (403)
       content:
@@ -388,7 +524,7 @@ components:
       description: "Information about client software with: ClientId(20 characters) + / + VersionNumber (1 to 15 characters)."
       type: string
       pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
-      example: CLIENTID1234567890AB/2.1.12-45
+      examples: [CLIENTID1234567890AB/2.1.12-45]
    
     AuthorizationRequestGidSchema:
       description: Popp-fdv client sends an oauth-complaint authorization request with pkce
@@ -397,31 +533,31 @@ components:
         issidp:
           description: The issuer Identifier (URL) of the IDP to be used for user authentication 
           type: string
-          example: https://idp_kk.de 
+          examples: [https://idp_kk.de]
         clientId:
           description: Identifier of the application registered on popp authorization server 
           type: string
-          example: "myApplicationPoPPFdV"
+          examples: ["myApplicationPoPPFdV"]
         state:
           description: Neccecery sequrity parameter, see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
           type: "string"
-          example: "myPoPPFdVGeneratedState"
+          examples: ["]myPoPPFdVGeneratedState"]
         redirect_uri:
           description: Destination URL for the authorization code. The application needs to send the authorization code to the Popp application server. The PoPP application server uses the authorization code to redeem an ID token at the sectoral IDP.
           type: "string"
-          example: "https://myApplication.de"
+          examples: ["https://myApplication.de"]
         code_challenge:
           description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
           type: "string"
-          example: "K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"
+          examples: ["K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"]
         code_challenge_method:
           description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
           type: "string"
-          example: "S256"
+          examples: ["S256"]
         response_type:
           description: Popp-FdV client will get an authorization code, and will exchange this code against an access token.
           type: "string"
-          example: "code"
+          examples: ["code"]
 
     AuthorizationResponse200Schema:
       description: Authorization code issued by the popp authorization server
@@ -430,11 +566,11 @@ components:
         code:
           description: authorization code 
           type: string  
-          example: autorizationcode<number>
+          examples: [autorizationcode<number>]
         state:
           description: The status must be exactly the same as what the Popp-FDV client sent in the authorization request (see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9) 
           type: string 
-          example: "myPoPPFdVGeneratedState"       
+          examples: ["myPoPPFdVGeneratedState"]     
     
     
     AuthorizationRequestEHCSchema:
@@ -450,27 +586,27 @@ components:
         clientId:
           description: Identifier of the application registered on popp authorization server 
           type: string
-          example: "myApplicationPoPPFdV"
+          examples: ["myApplicationPoPPFdV"]
         state:
           description: Neccecery sequrity parameter, see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
           type: "string"
-          example: "myPoPPFdVGeneratedState"
+          examples: ["myPoPPFdVGeneratedState"]
         redirect_uri:
           description: Destination URL for the authorization code. The authorization code is used to redeem against an access token used in the Popp authorization server.
           type: "string"
-          example: "https://myApplication.de"
+          examples: ["https://myApplication.de"]
         code_challenge:
           description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
           type: "string"
-          example: "K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"
+          examples: ["K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"]
         code_challenge_method:
           description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
           type: "string"
-          example: "S256"
+          examples: ["S256"]
         response_type:
           description: Popp-FdV client will get an authorization code, and will exchange this code against an access token.
           type: "string"
-          example: "code"
+          examples: ["code"]
     
     TokenRequestHealthIdSchema:
       description: Popp-fdv client sends an oauth-complaint token request with pkce
@@ -479,22 +615,22 @@ components:
         grant_type:
           description: grant type 
           type: string
-          example: authorization_code
+          examples: [authorization_code]
         code:
           description: authorization code 
           type: string  
-          example: autorizationcode<number>
+          examples: [autorizationcode<number>]
         code_verifier:
           description: pkce code verifier (see https://datatracker.ietf.org/doc/html/rfc7636#section-4.1) 
           type: string  
         clientId:
           description: Identifier of the application registered on popp authorization server 
           type: string
-          example: "myApplicationPoPPFdV"
+          examples: ["myApplicationPoPPFdV"]
         redirect_uri:
           description: Destination URL for the access token.
           type: "string"
-          example: "https://myApplication.de"
+          examples: ["https://myApplication.de"]
     
     TokenResponseHealthId200Schema:
       type: object
@@ -511,22 +647,22 @@ components:
         grant_type:
           description: grant type 
           type: string
-          example: authorization_code
+          examples: [authorization_code]
         code:
           description: authorization code 
           type: string  
-          example: cardcommunication_autorizationcode<number>
+          examples: [cardcommunication_autorizationcode<number>]
         code_verifier:
           description: pkce code verifier (see https://datatracker.ietf.org/doc/html/rfc7636#section-4.1) 
           type: string  
         clientId:
           description: Identifier of the application registered on popp authorization server 
           type: string
-          example: "myApplicationPoPPFdV"
+          examples: ["myApplicationPoPPFdV"]
         redirect_uri:
           description: Destination URL for the access token.
           type: "string"
-          example: "https://myApplication.de"
+          examples: ["https://myApplication.de"]
 
     TokenResponseEHC200Schema:
       type: object
@@ -536,6 +672,22 @@ components:
           format: application/jwt
           pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
   
+    TanResponseHealthId200Schema:
+      type: object
+      properties:
+        jwt:
+          type: string
+          format: application/jwt
+          pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+    
+    TanResponseEHC200Schema:
+      type: object
+      properties:
+        jwt:
+          type: string
+          format: application/jwt
+          pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+
     ErrorSchema:
       description: Error object with additional information about the occurred error
       type: object
@@ -548,3 +700,15 @@ components:
           type: string
       required:
         - errorCode
+
+  securitySchemes:
+    bearerAuthHealtId:
+      description: ehealthId-check Access-Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    bearerAuthEHC:
+      description: card-check Access-Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT      
