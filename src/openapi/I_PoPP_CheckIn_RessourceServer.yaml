@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: PoPP Ressource Server for 3rd party applications
+  title: PoPP resource server for 3rd party applications
   description: |
-    This interface provides access to PoPP Service Ressource Server for applications.
+    This interface provides access to PoPP Service resource server for applications.
     Via this interface, client systems that implement a PoPP Module (popp-fdv) can carry out TAN generation. 
     The client system receives TAN to present it towards a practinioner system.
 
