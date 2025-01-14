@@ -99,6 +99,10 @@ components:
         Sent by the server to the client to execute command APDU by the
         eHealth-Card (eHC).
       properties:
+        type:
+          type: string
+          const: "StandardScenario"
+          description: TODO
         version:
           type: string
           description: |
@@ -133,6 +137,7 @@ components:
           items:
             $ref: "#/components/schemas/ScenarioStep"
       required:
+        - type
         - version
         - clientSessionId
         - sequenceCounter
@@ -163,6 +168,10 @@ components:
       description: |
         JWT according to RFC 7519 with a StandardScenarioMessage as payload
       properties:
+        type:
+          type: string
+          const: "ConnectorScenario"
+          description: TODO
         version:
           type: string
           description: |
@@ -180,16 +189,48 @@ components:
         - version
         - signedScenario
 
+    ConnectorScenarioHeaders:
+      type: object
+      title: "Connector Scenario Headers"
+      description: TODO
+      properties:
+        typ:
+          type: string
+          const: "JWT"
+        alg:
+          type: string
+          description: |
+            The algorithm used to sign the token.
+            Currently only ES256 is supported.
+          enum:
+            - ES256
+        x5c:
+          type: array
+          items:
+            type: string
+            description: |
+              The end entity X.509 certificate with the signature verification
+              key.
+              Certificates are encoded in DER and base64 encoded as described in
+              https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
+      required:
+        - typ
+        - alg
+        - x5c
+
     ScenarioResponseMessage:
       type: object
       properties:
+        type:
+          type: string
+          const: "ScenarioResponse"
         steps:
           type: array
           description: List of ISO/IEC 7816-4 response APDU as hexadecimal strings.
           items:
             type: string
       examples:
-        - steps: ["9000"]
+        - steps: ["9000", "abcd9000", "11223344559000"]
       required:
         - steps
 
@@ -261,9 +302,9 @@ components:
           items:
             type: string
             description: |
-              The X.509 certificate chain used to sign the token. The first 
-              element is the certificate that was used to sign the token.
-              Certificates are encoded in DER and base64 encoded as described in 
+              The X.509 certificate chain used to sign the token.
+              The first element is the certificate that was used to sign the token.
+              Certificates are encoded in DER and base64 encoded as described in
               https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
       required:
         - typ
@@ -405,21 +446,3 @@ components:
           tokenUrl: https://auth.example.com/token
           scopes:
             token:generate: Generate PoPP tokens
-
-# Editor's notes: TODO This comment SHALL be deleted before publication. TODO
-# 1. The following messages have a property "type" duplicating the type of
-#    message:
-#    - StartMessage, see line 40
-#    - ErrorMessage, see line 202
-#    - TokenMessage, see line 221
-# 2. The following messages do NOT have a property "type":
-#    - StandardScenarioMessage, see line 101 ff
-#    - ConnectorScenarioMessage, see line 160 ff
-#    - ScenarioResponseMessage, see line 183 ff
-# 3. It seems either all messages have a property "type" or no message at all.
-# 4. "TokenMessage" contains a JWT thing which is specified further as
-#    "TokenHeader" and "TokenClaims".
-#    It seems that seen as a payload in a JWT "StandardScenarioMessage" is
-#    similar to "TokenClaims". But there is no correspondence to "TokenHeaders"
-#    for a "ConnectorScenarioMessage". Is there something missing like
-#    "ConnectorScenarioHeader"?
