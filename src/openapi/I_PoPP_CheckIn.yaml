@@ -10,7 +10,7 @@ info:
     PoPP-Service (Resource Server).
 
     This interface also describe user authentication via the insurer's
-    eHealth-Card during a mobild check-in (possibly via a smartphone). 
+    eHealth-Card during a mobile check-in (possibly via a smartphone). 
     The PoPP-Modul receives an card-checked access token for access to the
     PoPP-Service (Resource Server).
 
