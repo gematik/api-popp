@@ -89,10 +89,12 @@ components:
         - type: "Start"
           version: "1.0.0"
           cardConnectionType: "contact-standard"
+          clientSessionId: "123e4567-e89b-12d3-a456-426614174000"
       required:
         - type
         - version
         - cardConnectionType
+        - clientSessionId
 
     StandardScenarioMessage:
       type: object
@@ -229,7 +231,11 @@ components:
           const: "ScenarioResponse"
         steps:
           type: array
-          description: List of ISO/IEC 7816-4 response APDU as hexadecimal strings.
+          description: |
+            List of ISO/IEC 7816-4 response APDU as hexadecimal strings.
+            The responses from the smartcard.
+            The 1st element corresponds to the 1st command APDU from a Scenario.
+            The n-th element corresponds to the n-th command APDU from a Scenario.
           items:
             type: string
       examples:
@@ -246,7 +252,7 @@ components:
         type:
           type: string
           const: "Error"
-          description: [FRA|SER] Why do we need this? The ErrorMessage already defines the type.
+          description: "The constant type identifier for Error."
         errorCode:
           type: string
           description: "The error code."
@@ -254,6 +260,7 @@ components:
           type: string
           description: "A human-readable error message."
       required:
+        - type
         - errorCode
 
     TokenMessage:
@@ -265,7 +272,7 @@ components:
         type:
           type: string
           const: "Token"
-          description: [FRA|SER] Why do we need this? The TokenMessage already defines the type.
+          description: "The constant type identifier for Token."
         token:
           type: string
           description: "PoPP token as JWT compact serialization."
