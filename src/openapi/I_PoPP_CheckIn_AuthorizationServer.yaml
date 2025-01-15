@@ -3,11 +3,11 @@ info:
   title: PoPP-Service Authorization Server
   description: |
     This interface provides access to PoPP-Service Authorization Server.
-    Via this interface, client systems (PoPP-Modul) can carry out
-    user authentication with the eHealth-ID using the insured person's device
+    Via this interface, client systems (PoPP-Modul) can carry out user
+    authentication with the eHealth-ID using the insured person's device
     through the health insurance company's sectoral IDP.
     The PoPP-Modul receives an eHealth-ID-checked access token for access to the
-    PoPP-Service (resource server).
+    PoPP-Service (Resource Server).
 
     This interface also describe user authentication via the insurer's
     eHealth-Card during a mobile check-in (possibly via a smartphone). 
@@ -20,10 +20,10 @@ info:
     condition in _errorDetail_
 
     **Prerequisites**:</br>
-    For using healthId
-    - The sectoral IDP of health insurance is registered with the TI-Federation
-    - The PoPP-Service Authorization Server is registered with the TI-Federation
-    - The PoPP-Modul is registered with PoPP-Service Authorization Server 
+    For using eHealth-ID
+    - The sectoral IDP of health insurance is registered with the TI-Federation.
+    - The PoPP-Service Authorization Server is registered with the TI-Federation.
+    - The PoPP-Modul is registered with PoPP-Service Authorization Server.
 
     For using electronic Health Card
     - The PoPP-Modul is registered with PoPP-Service Authorization Server 
@@ -42,12 +42,14 @@ info:
     name: Apache 2.0
     url: 'https://www.apache.org/licenses/LICENSE-2.0'
 
-  version: 0.0.1
+  version: 1.0.0
 
   # version history:
   # ----------------
   # version 0.0.1
   #   - initial version for review
+  # version 1.0.0
+  #   - first version for publication
 
 servers:
 - url: https://popp-service.de
@@ -55,27 +57,35 @@ servers:
 tags:
 - name: Authorization Health-ID
   description: |
-   The insured person uses his device to authenticate himself to the health insurance company's sectoral IDP (GesundheitsID).
-   The popp authorization server must know the address of the IDP (iss-idp) with which the insured is registered.
-   For this reason, it is possible to view a list of registered IDPs (insurance companies) on popp-fdv.
-   If the Popp authorization server does not know the IDP address of the calling popp-fdv, the insured person 
-   must select their health insurance company in the popp-fdv.
-   
-   Authenticating a user against the IDP is a task of the authenticator belonging to the IDP on the insured person’s device. 
+    The insured person uses a device to authenticate himself to the health
+    insurance company's sectoral IDP (GesundheitsID).
+    The PoPP-Service Authorization Server must know the address of the IDP
+    (iss-idp) with which the insured is registered. [afi TODO]: "insured what", "insured person" or "insurance".
+    For this reason, it is possible to view a list of registered IDPs
+    (insurance companies) on PoPP-Modul.
+    If the PoPP-Service Authorization Server does not know the IDP address of
+    the calling PoPP-Modul, the insured person SHALL select their health
+    insurance company in the PoPP-Modul.
 
-   A successful login provides an popp-fdv access token and causes an authorized user allowing access to the 
-   protected resource (PoPP-Service) to get a TAN-Set.
+    Authenticating a user against the IDP is a task of the authenticator
+    belonging to the IDP on the insured person’s device. 
+
+    A successful login provides an PoPP-Modul access token and causes an
+    authorized user allowing access to the protected resource (PoPP-Service)
+    to get a TAN-Set.
 
 - name: Authorization eHealth-Card
   description: |
-   The insured person uses his eHealth-Card for validation. Popp-fdv extract cvc and c.aut from eHealth-Card and use this parameter for authorization request.
-   The popp authorization server generate an card-communication access token. Popp-fdv use card-communication access token for communication with popp-service
-   to read data from eHealth-Card.
-   
-   A successful evaluation of eHealth-Card data provides a TAN-Set.    
+    The insured person uses his eHealth-Card for validation.
+    The PoPP-Service Authorization Server generate an card-communication
+    access token.
+    PoPP-Modul use card-communication access token for communication with
+    PoPP-Service to read data from eHealth-Card.
+    
+    A successful evaluation of eHealth-Card data provides a TAN-Set.    
 
 externalDocs:
-  description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_FdV'
+  description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_Modul'
   url: https://gemspec.gematik.de/docs/gemSpec/
 
 paths:
@@ -86,38 +96,50 @@ paths:
       tags:
         - Authorization Health-ID
       operationId: sendAuthorizationRequestGid
-      summary: Send authorization request for authentication with Health-ID
+      summary: Send authorization request for authentication with eHealth-ID
       description: | 
-        Sends an authorization request to the authorization service for authentication with Health-IDID.
+        Sends an authorization request to the authorization service for
+        authentication with eHealth-ID.
        
         **Client**:</br>
-        A registered popp-fdv client must send an OAuth-compliant request to the Popp authorization server.
-        To defend against attacks, the popp-fdv client must use pkce (Proof Key for Code Exchange). 
-        The code challenge method (code_challenge_method) must be “S256”. The response type (response_type) must be "code".<br/>
+        A registered PoPP-Modul SHALL send an OAuth-compliant request to the
+        PoPP-Service Authorization Server.
+        To defend against attacks, the PoPP-Modul SHALL use pkce
+        (Proof Key for Code Exchange). 
+        The code challenge method (code_challenge_method) SHALL be “S256”.
+        The response type (response_type) SHALL be "code".<br/>
        
         **Provider**:</br>
-        The popp authorization server shall send a pushed authorization request (PAR) to the IDP 
+        The PoPP-Service Authorization Server SHALL send a pushed authorization
+        request (PAR) to the IDP
         (see: gemSpec_IDP_Sek, table "Parameter Pushed Authorization Request").
-        To defend against attacks, the popp authorization server must use pkce (Proof Key for Code Exchange) too. 
-        The code challenge method (code_challenge_method) must be “S256”. The response type (response_type) must be "code".
-        It is neccecary to generate and propagate a "nonce" parameter.
-        The acr-value in the PAR must be "gematic_ehealth_loa_high", the scope parameter used in the PAR must be "urn:telematik:versicherter".  
+        To defend against attacks, the PoPP-Service Authorization Server SHALL
+        use pkce (Proof Key for Code Exchange) too. 
+        The code challenge method (code_challenge_method) SHALL be “S256”.
+        The response type (response_type) SHALL be "code".
+        It is necessary to generate and propagate a "nonce" parameter.
+        The acr-value in the PAR SHALL be "gematic_ehealth_loa_high", the
+        scope parameter used in the PAR SHALL be "urn:telematik:versicherter".  
 
-        The authorization server state value and clientid used for the PAR shall occur in the URI-PAR response of the IDP.
-        After successful authentication popp authorization server create an authorization code for the calling popp-fdv.
+        The authorization server state value and clientid used for the PAR SHALL
+        occur in the URI-PAR response of the IDP.
+        After successful authentication PoPP-Service Authorization Server
+        creates an authorization code for the calling PoPP-Modul.
 
-        | Conditions | Status code | Error code | Remarks |
-        |------------|-------------|------------|---------|
-        | Successful operation | 200 | successful ||
-        | Request does not match schema | 400 | malformedRequest |  |
-        | clientid value mismatch | 403 | invalData | popp authorization server didn't know clientid value |
-        | Invalid URI (idp-iss) | 404 | noResource | uri for idp do not exist or ist not registered on TI-Federation|
-        | Any other error | 500 | internalError ||
+        | Conditions                    | Status code | Error code       | Remarks                                                         |
+        |-------------------------------|-------------|------------------|-----------------------------------------------------------------|
+        | Successful operation          | 200         | successful       |                                                                 |
+        | Request does not match schema | 400         | malformedRequest |                                                                 |
+        | clientid value mismatch       | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value    |
+        | Invalid URI (idp-iss)         | 404         | noResource       | uri for idp do not exist or ist not registered on TI-Federation |
+        | Any other error               | 500         | internalError    |                                                                 |
  
 
       requestBody:
-        description: >-
-            Authorization Request is an OAuth compliant request used Proof Key for Code Exchange by OAuth Public Clients (see https://datatracker.ietf.org/doc/html/rfc763).
+        description: |
+          Authorization Request is an OAuth compliant request using
+          Proof Key for Code Exchange by OAuth Public Clients
+          (see https://datatracker.ietf.org/doc/html/rfc763).
         required: true
         content:
           application/json:
@@ -145,33 +167,43 @@ paths:
       operationId: sendAuthorizationRequestEHC
       summary: Send authorization request for authentication with eHealth-Card
       description: | 
-        Sends an authorization request to the authorization service with information from eHealth-Card of the insurend person.
+        Sends an authorization request to the authorization service with
+        information from eHealth-Card of the insured person.
         
         **Client**:</br>
-        A registered popp-fdv client must send an OAuth-compliant request to the Popp authorization server.
-        To defend against attacks, the popp-fdv client must use pkce (Proof Key for Code Exchange). 
-        The code challenge method (code_challenge_method) must be “S256”. The response type (response_type) must be "code".
-        The authorization request must send additional parameter cvc and c.aut.<br/>
+        A registered PoPP-Modul SHALL send an OAuth-compliant request to the
+        PoPP-Service Authorization Server.
+        To defend against attacks, the PoPP-Modul client SHALL use pkce
+        (Proof Key for Code Exchange). 
+        The code challenge method (code_challenge_method) SHALL be “S256”.
+        The response type (response_type) SHALL be "code".<br/>
        
         **Provider**:</br>
-        The popp authorization server create an access token (card-communication access token). The access token includes information about
-        cvc and c.aut. The card-communication access token is signed with a key was published in entity statement of popp authorization server.
-        The popp-fdv use card-communication access token to get access to popp-service for creation a direct communication cannel 
-        between eHealth-Card and popp-service.
-
-        After creation card-communication access token popp authorization server create an authorization code for the calling popp-fdv.  
-
-        | Conditions | Status code | Error code | Remarks |
-        |------------|-------------|------------|---------|
-        | Successful operation | 200 | successful ||
-        | Request does not match schema | 400 | malformedRequest |  |
-        | clientid value mismatch | 403 | invalData | popp authorization server didn't know clientid value |
-        | Any other error | 500 | internalError ||
+        The PoPP-Service Authorization Server creates an access token
+        (card-communication access token).
+        The card-communication access token is signed with a key which was
+        published in entity statement of PoPP-Service Authorization Server.
+        The PoPP-Modul uses the card-communication access token to get access
+        to the PoPP-Service for creating a direct communication channel 
+        between eHealth-Card and PoPP-Service.
+        
+        After creating a card-communication access token the
+        PoPP-Service Authorization Server creates an authorization code
+        for the calling PoPP-Modul.  
+        
+        | Conditions                    | Status code | Error code       | Remarks                                                      |
+        |-------------------------------|-------------|------------------|--------------------------------------------------------------|
+        | Successful operation          | 200         | successful       |                                                              |
+        | Request does not match schema | 400         | malformedRequest |                                                              |
+        | clientid value mismatch       | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value |
+        | Any other error               | 500         | internalError    |                                                              |
 
 
       requestBody:
-        description: >-
-            Authorization Request is an OAuth complaint request used Proof Key for Code Exchange by OAuth Public Clients (see https://datatracker.ietf.org/doc/html/rfc763).
+        description: |
+          Authorization Request is an OAuth complaint request using
+          Proof Key for Code Exchange by OAuth Public Clients
+          (see https://datatracker.ietf.org/doc/html/rfc763).
         required: true
         content:
           application/json:
@@ -195,30 +227,33 @@ paths:
       tags:
         - Authorization Health-ID
       operationId: sendAuthCodeHealthId
-      summary: Send token request to obtain an healthId-checked access token from popp authorization server
+      summary: Send token request to obtain an healthId-checked access token from PoPP-Service Authorization Server
       description: | 
-        Sends an token request against popp authorization server.
-      
-        **Client**:</br>
-        A registered popp-fdv client must send token requst against authorization server to get an access token.
-        The parameter grand type (grant_type) must be "authorization_code". <br/>
-       
-        **Provider**:</br>
-        The poppp authorization server checks the authorization code and the code verifier. Depending on the authorization code  
-        the popp authorization server sends a popp-fdv access token to the popp-fdv.  
+        Sends a token request to the PoPP-Service Authorization Server.
 
-      
-        | Conditions | Status code | Error code | Remarks |
-        |------------|-------------|------------|---------|
-        | Successful operation | 200 | successful ||
-        | Request does not match schema | 400 | malformedRequest |  |
-        | mismatch authorizationcode or code verifier or clientId | 403 | invalData | popp authorization server didn't know clientid value or pkce proof failed |
-        | Any other error | 500 | internalError ||
- 
+        **Client**:</br>
+        A registered PoPP-Modul SHALL send token request to the
+        PoPP-Service Authorization Server to get an access token.
+        The parameter grand type (grant_type) SHALL be "authorization_code". <br/>
+
+        **Provider**:</br>
+        The PoPP-Service Authorization Server checks the authorization code and
+        the code verifier.
+        Depending on the authorization code the PoPP-Service Authorization Server
+        sends a PoPP-Modul access token to the PoPP-Modul.
+
+        | Conditions                                               | Status code | Error code       | Remarks |
+        |----------------------------------------------------------|-------------|------------------|---------|
+        | Successful operation                                     | 200         | successful       |         |
+        | Request does not match schema                            | 400         | malformedRequest |         |
+        | mismatch authorization code or code verifier or clientId | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value or pkce proof failed |
+        | Any other error                                          | 500         | internalError    |         |
 
       requestBody:
-        description: >-
-            Token Request is an OAuth complaint request used Proof Key for Code Exchange by OAuth Public Clients (see https://datatracker.ietf.org/doc/html/rfc763).
+        description: |
+          Token Request is an OAuth complaint request using Proof Key for
+          Code Exchange by OAuth Public Clients
+          (see https://datatracker.ietf.org/doc/html/rfc763).
         required: true
         content:
           application/json:
@@ -242,30 +277,34 @@ paths:
       tags:
         - Authorization eHealth-Card
       operationId: sendAuthCodeEHC
-      summary: Send token request to obtain an card-checked access token from popp authorization server
+      summary: Send token request to obtain an card-checked access token from PoPP-Service Authorization Server
       description: | 
-        Sends an token request against popp authorization server.
+        Sends an token request to the PoPP-Service Authorization Server.
        
         **Client**:</br>
-        A registered popp-fdv client must send token requst against authorization server to get an access token.
-        The parameter grand type (grant_type) must be "authorization_code". <br/>
+        A registered PoPP-Modul SHALL send token request to the
+        PoPP-Service Authorization Server to get an access token.
+        The parameter grand type (grant_type) SHALL be "authorization_code". <br/>
        
         **Provider**:</br>
-        The popp authorization server checks the authorization code and the code verifier. Depending on the authorization code  
-        the popp authorization server sends an card-communication access token or a popp-fdv access token to the popp-fdv.  
-
+        The PoPP-Service Authorization Server checks the authorization code
+        and the code verifier.
+        Depending on the authorization code the PoPP-Service Authorization Server
+        sends a card-communication access token or a PoPP-Modul access token to
+        the PoPP-Modul.
       
-        | Conditions | Status code | Error code | Remarks |
-        |------------|-------------|------------|---------|
-        | Successful operation | 200 | successful ||
-        | Request does not match schema | 400 | malformedRequest |  |
-        | mismatch authorizationcode or code verifier or clientId | 403 | invalData | popp authorization server didn't know clientid value or pkce proof failed |
-        | Any other error | 500 | internalError ||
- 
+        | Conditions                                              | Status code | Error code       | Remarks |
+        |---------------------------------------------------------|-------------|------------------|---------|
+        | Successful operation                                    | 200         | successful       |         |
+        | Request does not match schema                           | 400         | malformedRequest |         |
+        | mismatch authorizationcode or code verifier or clientId | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value or pkce proof failed |
+        | Any other error                                         | 500         | internalError    |         |
 
       requestBody:
-        description: >-
-            Token Request is an OAuth complaint request used Proof Key for Code Exchange by OAuth Public Clients (see https://datatracker.ietf.org/doc/html/rfc763).
+        description: |
+          Token Request is an OAuth complaint request using Proof Key for
+          Code Exchange by OAuth Public Clients
+          (see https://datatracker.ietf.org/doc/html/rfc763).
         required: true
         content:
           application/json:
@@ -302,7 +341,8 @@ components:
 
     TokenResponseHealthId200:
       description: |
-        A JSON Web Token (JWT), healthId-checked access token for access the popp-service, with following format build according to RFC-7515:</br>
+        A JSON Web Token (JWT), healthId-checked access token for access to the
+        PoPP-Service, with the following format according to RFC-7515:</br>
         base64url (protected_header) + '.' + base64url (payload) + '.' + base64url (signature)"</br>
         Content for device attestation:</br>
         - protected_header contains:
@@ -313,9 +353,9 @@ components:
           - "exp": expiry timestamp (always iat + 120 min)
           - "idNummer": KVNR
           - "organizationID": IK-Nummer
-          - "telematikId": Telematik-ID of a ehealth institution
-          - "poppfdv": Information about registered Popp-FdV
-          - "shortTan": short TAN needed
+          - "telematikId": Telematik-ID of an eHealth institution
+          - "poppfdv": Information about registered PoPP-Modul
+          - "shortTan": short TAN needed [afi TODO] Wird hier stets eine "kurze"-TAN transportiert?
         - signature contains token signature
       content:
         application/jwt:
@@ -326,7 +366,8 @@ components:
 
     TokenResponseEHC200:
       description: |
-        "A JSON Web Token (JWT), card-checked access token for access the popp-service, with following format build according to RFC-7515:</br>
+        A JSON Web Token (JWT), card-checked access token for access to the
+        PoPP-Service, with the following format according to RFC-7515:</br>
         base64url (protected_header) + '.' + base64url (payload) + '.' + base64url (signature)"</br>
         Content for device attestation:</br>
         - protected_header contains:
@@ -335,9 +376,9 @@ components:
         - payload claims:
           - "iat": issued at timestamp
           - "exp": expiry timestamp (always iat + 120 min)
-          - "telematikId": Telematik-ID of a ehealth institution
-          - "poppfdv": Information about registered Popp-FdV
-          - "shortTan": short TAN needed
+          - "telematikId": Telematik-ID of an eHealth institution
+          - "poppfdv": Information about registered PoPP-Modul [afi TODO]: Heißt das noch poppfdv?
+          - "shortTan": short TAN needed [afi TODO] Wird hier stets eine "kurze"-TAN transportiert?
         - signature contains token signature
       content:
         application/jwt:
@@ -402,60 +443,81 @@ components:
 
   schemas:
     UserAgentSchema:
-      description: "Information about client software with: ClientId(20 characters) + / + VersionNumber (1 to 15 characters)."
+      description: |
+        Information about client software with:
+        ClientId(20 characters) + / + VersionNumber (1 to 15 characters).
       type: string
       pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
-      examples: [CLIENTID1234567890AB/2.1.12-45]
+      examples: ["CLIENTID1234567890AB/2.1.12-45"]
 
     AuthorizationRequestGidSchema:
-      description: Popp-fdv client sends an oauth-complaint authorization request with pkce
+      description: |
+        PoPP-Modul sends an oauth-complaint authorization request with pkce
       type: object
       properties:
         issidp:
-          description: The issuer Identifier (URL) of the IDP to be used for user authentication
+          description: |
+            The issuer identifier (URL) of the IDP used for user authentication
           type: string
-          examples: [https://idp_kk.de]
+          examples: ["https://idp_kk.de"]
         clientId:
-          description: Identifier of the application registered on popp authorization server
+          description: |
+            Identifier of the application registered on
+            PoPP-Service Authorization Server
           type: string
           examples: ["myApplicationPoPPFdV"]
         state:
-          description: Neccecery sequrity parameter, see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
-          type: "string"
-          examples: ["]myPoPPFdVGeneratedState"]
+          description: |
+            Necessary security parameter, see
+            https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
+          type: "string" [afi TODO] wieso wird "string" hier in Gänsefüßchen geschrieben und weiter oben nicht? Prüfen und ggf. global such und ersetzen.
+          examples: ["]myPoPPFdVGeneratedState"] [afi TODO]: Wieso fängt hier das Beispiel mit einer "geschlossenen eckigen Klammer" an? Prüfen und ggf. korrigieren.
         redirect_uri:
-          description: Destination URL for the authorization code. The application needs to send the authorization code to the Popp application server. The PoPP application server uses the authorization code to redeem an ID token at the sectoral IDP.
+          description: |
+            Destination URL for the authorization code.
+            The application needs to send the authorization code to the
+            Popp application server. [afi TODO]: Was ist ein "Popp application server"? Ist hier und in der folgenden Zeile "PoPP-Service Authorization Server" gemeint?
+            The PoPP application server uses the authorization code to redeem
+            an ID token at the sectoral IDP.
           type: "string"
           examples: ["https://myApplication.de"]
         code_challenge:
-          description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+          description: |
+            see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
           type: "string"
           examples: ["K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"]
         code_challenge_method:
-          description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
+          description: |
+            see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
           type: "string"
           examples: ["S256"]
         response_type:
-          description: Popp-FdV client will get an authorization code, and will exchange this code against an access token.
+          description: |
+            PoPP-Modul will get an authorization code, and will exchange this
+            code for an access token.
           type: "string"
           examples: ["code"]
 
     AuthorizationResponse200Schema:
-      description: Authorization code issued by the popp authorization server
+      description: |
+        Authorization code issued by the PoPP-Service Authorization Server
       type: object
       properties:
         code:
           description: authorization code
           type: string
-          examples: [autorizationcode<number>]
+          examples: ["authorization code<number>"]
         state:
-          description: The status must be exactly the same as what the Popp-FDV client sent in the authorization request (see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9)
+          description: |
+            The status SHALL be exactly the same as what the PoPP-Modul sent in
+            the authorization request
+            (see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9)
           type: string
           examples: ["myPoPPFdVGeneratedState"]
 
-
-    AuthorizationRequestEHCSchema:
-      description: Popp-fdv client sends an oauth-complaint authorization request with pkce
+    AuthorizationRequestEHCSchema: [afi TODO]: Ist das noch aktuell? In gemSpec_PoPP_Service fehlt das.
+      description: |
+        PoPP-Modul sends an oauth-complaint authorization request with pkce
       type: object
       properties:
         cvcehc:
@@ -465,47 +527,63 @@ components:
           description: c.aut read from eHealth-Card of the insurend person
           type: string
         clientId:
-          description: Identifier of the application registered on popp authorization server
+          description: |
+            Identifier of the application registered on
+            PoPP-Service Authorization Server
           type: string
           examples: ["myApplicationPoPPFdV"]
         state:
-          description: Neccecery sequrity parameter, see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
+          description: |
+            Necessary security parameter,
+            see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
           type: "string"
           examples: ["myPoPPFdVGeneratedState"]
         redirect_uri:
-          description: Destination URL for the authorization code. The authorization code is used to redeem against an access token used in the Popp authorization server.
+          description: |
+            Destination URL for the authorization code.
+            The authorization code is used to redeem against an access token
+            used in the PoPP-Service Authorization Server.
           type: "string"
           examples: ["https://myApplication.de"]
         code_challenge:
-          description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+          description: |
+            see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
           type: "string"
           examples: ["K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"]
         code_challenge_method:
-          description: see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
+          description: |
+            see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
           type: "string"
           examples: ["S256"]
         response_type:
-          description: Popp-FdV client will get an authorization code, and will exchange this code against an access token.
+          description: |
+            PoPP-Modul will get an authorization code, and will
+            exchange this code against an access token.
           type: "string"
           examples: ["code"]
 
     TokenRequestHealthIdSchema:
-      description: Popp-fdv client sends an oauth-complaint token request with pkce
+      description: |
+        PoPP-Modul sends an oauth-complaint token request with pkce
       type: object
       properties:
         grant_type:
           description: grant type
           type: string
-          examples: [authorization_code]
+          examples: ["authorization_code"]
         code:
           description: authorization code
           type: string
-          examples: [autorizationcode<number>]
+          examples: ["autorization code<number>"]
         code_verifier:
-          description: pkce code verifier (see https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)
+          description: |
+            pkce code verifier
+            (see https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)
           type: string
         clientId:
-          description: Identifier of the application registered on popp authorization server
+          description: |
+            Identifier of the application registered on
+            PoPP-Service Authorization Server
           type: string
           examples: ["myApplicationPoPPFdV"]
         redirect_uri:
@@ -519,10 +597,10 @@ components:
         jwt:
           type: string
           format: application/jwt
-          pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+          pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
 
     TokenRequestEHCSchema:
-      description: Popp-fdv client sends an oauth-complaint token request with pkce
+      description: PoPP-Modul sends an oauth-complaint token request with pkce
       type: object
       properties:
         grant_type:
@@ -532,12 +610,16 @@ components:
         code:
           description: authorization code
           type: string
-          examples: [cardcommunication_autorizationcode<number>]
+          examples: ["cardcommunication_autorizationcode<number>"]
         code_verifier:
-          description: pkce code verifier (see https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)
+          description: |
+            pkce code verifier
+            (see https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)
           type: string
         clientId:
-          description: Identifier of the application registered on popp authorization server
+          description: |
+            Identifier of the application registered on
+            PoPP-Service Authorization Server
           type: string
           examples: ["myApplicationPoPPFdV"]
         redirect_uri:
@@ -551,8 +633,7 @@ components:
         jwt:
           type: string
           format: application/jwt
-          pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
-
+          pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
 
     ErrorSchema:
       description: Error object with additional information about the occurred error
