@@ -6,12 +6,12 @@ info:
     Via this interface, client systems (PoPP-Modul) can carry out user
     authentication with the eHealth-ID using the insured person's device
     through the health insurance company's sectoral IDP.
-    The PoPP-Modul receives an eHealth-ID-checked access token for access to the
+    The PoPP-Module receives an eHealth-ID-checked access token for access to the
     PoPP-Service (Resource Server).
 
     This interface also describe user authentication via the insurer's
     eHealth-Card during a mobile check-in (possibly via a smartphone). 
-    The PoPP-Modul receives an card-checked access token for access to the
+    The PoPP-Module receives an card-checked access token for access to the
     PoPP-Service (Resource Server).
 
     **General conditions**:</br> 
@@ -23,11 +23,11 @@ info:
     For using eHealth-ID
     - The sectoral IDP of health insurance is registered with the TI-Federation.
     - The PoPP-Service Authorization Server is registered with the TI-Federation.
-    - The PoPP-Modul is registered with PoPP-Service Authorization Server.
+    - The PoPP-Module is registered with PoPP-Service Authorization Server.
 
     For using electronic Health Card
-    - The PoPP-Modul is registered with PoPP-Service Authorization Server 
-    - The PoPP-Modul can read public data from eHealth-Card
+    - The PoPP-Module is registered with PoPP-Service Authorization Server 
+    - The PoPP-Module can read public data from eHealth-Card
     
     **Retry interval**:</br>
     The following retry intervals are suggested in case of an error response:<br>
@@ -70,7 +70,7 @@ tags:
     Authenticating a user against the IDP is a task of the authenticator
     belonging to the IDP on the insured person’s device. 
 
-    A successful login provides an PoPP-Modul access token and causes an
+    A successful login provides an PoPP-Module access token and causes an
     authorized user allowing access to the protected resource (PoPP-Service)
     to get a TAN-Set.
 
@@ -79,7 +79,7 @@ tags:
     The insured person uses his eHealth-Card for validation.
     The PoPP-Service Authorization Server generate an card-communication
     access token.
-    PoPP-Modul use card-communication access token for communication with
+    PoPP-Module use card-communication access token for communication with
     PoPP-Service to read data from eHealth-Card.
     
     A successful evaluation of eHealth-Card data provides a TAN-Set.    
@@ -102,9 +102,9 @@ paths:
         authentication with eHealth-ID.
        
         **Client**:</br>
-        A registered PoPP-Modul SHALL send an OAuth-compliant request to the
+        A registered PoPP-Module SHALL send an OAuth-compliant request to the
         PoPP-Service Authorization Server.
-        To defend against attacks, the PoPP-Modul SHALL use pkce
+        To defend against attacks, the PoPP-Module SHALL use pkce
         (Proof Key for Code Exchange). 
         The code challenge method (code_challenge_method) SHALL be “S256”.
         The response type (response_type) SHALL be "code".<br/>
@@ -171,9 +171,9 @@ paths:
         information from eHealth-Card of the insured person.
         
         **Client**:</br>
-        A registered PoPP-Modul SHALL send an OAuth-compliant request to the
+        A registered PoPP-Module SHALL send an OAuth-compliant request to the
         PoPP-Service Authorization Server.
-        To defend against attacks, the PoPP-Modul client SHALL use pkce
+        To defend against attacks, the PoPP-Module SHALL use pkce
         (Proof Key for Code Exchange). 
         The code challenge method (code_challenge_method) SHALL be “S256”.
         The response type (response_type) SHALL be "code".<br/>
@@ -183,7 +183,7 @@ paths:
         (card-communication access token).
         The card-communication access token is signed with a key which was
         published in entity statement of PoPP-Service Authorization Server.
-        The PoPP-Modul uses the card-communication access token to get access
+        The PoPP-Module uses the card-communication access token to get access
         to the PoPP-Service for creating a direct communication channel 
         between eHealth-Card and PoPP-Service.
         
@@ -232,7 +232,7 @@ paths:
         Sends a token request to the PoPP-Service Authorization Server.
 
         **Client**:</br>
-        A registered PoPP-Modul SHALL send token request to the
+        A registered PoPP-Module SHALL send token request to the
         PoPP-Service Authorization Server to get an access token.
         The parameter grand type (grant_type) SHALL be "authorization_code". <br/>
 
@@ -240,7 +240,7 @@ paths:
         The PoPP-Service Authorization Server checks the authorization code and
         the code verifier.
         Depending on the authorization code the PoPP-Service Authorization Server
-        sends a PoPP-Modul access token to the PoPP-Modul.
+        sends a PoPP-Module access token to the PoPP-Modul.
 
         | Conditions                                               | Status code | Error code       | Remarks |
         |----------------------------------------------------------|-------------|------------------|---------|
@@ -282,7 +282,7 @@ paths:
         Sends an token request to the PoPP-Service Authorization Server.
        
         **Client**:</br>
-        A registered PoPP-Modul SHALL send token request to the
+        A registered PoPP-Module SHALL send token request to the
         PoPP-Service Authorization Server to get an access token.
         The parameter grand type (grant_type) SHALL be "authorization_code". <br/>
        
@@ -290,7 +290,7 @@ paths:
         The PoPP-Service Authorization Server checks the authorization code
         and the code verifier.
         Depending on the authorization code the PoPP-Service Authorization Server
-        sends a card-communication access token or a PoPP-Modul access token to
+        sends a card-communication access token or a PoPP-Module access token to
         the PoPP-Modul.
       
         | Conditions                                              | Status code | Error code       | Remarks |
@@ -377,7 +377,7 @@ components:
           - "iat": issued at timestamp
           - "exp": expiry timestamp (always iat + 120 min)
           - "telematikId": Telematik-ID of an eHealth institution
-          - "poppfdv": Information about registered PoPP-Modul [afi TODO]: Heißt das noch poppfdv?
+          - "poppfdv": Information about registered PoPP-Module [afi TODO]: Heißt das noch poppfdv?
           - "shortTan": short TAN needed [afi TODO] Wird hier stets eine "kurze"-TAN transportiert?
         - signature contains token signature
       content:
@@ -452,7 +452,7 @@ components:
 
     AuthorizationRequestGidSchema:
       description: |
-        PoPP-Modul sends an oauth-complaint authorization request with pkce
+        PoPP-Module sends an oauth-complaint authorization request with pkce
       type: object
       properties:
         issidp:
@@ -493,7 +493,7 @@ components:
           examples: ["S256"]
         response_type:
           description: |
-            PoPP-Modul will get an authorization code, and will exchange this
+            PoPP-Module will get an authorization code, and will exchange this
             code for an access token.
           type: "string"
           examples: ["code"]
@@ -509,7 +509,7 @@ components:
           examples: ["authorization code<number>"]
         state:
           description: |
-            The status SHALL be exactly the same as what the PoPP-Modul sent in
+            The status SHALL be exactly the same as what the PoPP-Module sent in
             the authorization request
             (see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9)
           type: string
@@ -517,7 +517,7 @@ components:
 
     AuthorizationRequestEHCSchema: [afi TODO]: Ist das noch aktuell? In gemSpec_PoPP_Service fehlt das.
       description: |
-        PoPP-Modul sends an oauth-complaint authorization request with pkce
+        PoPP-Module sends an oauth-complaint authorization request with pkce
       type: object
       properties:
         cvcehc:
@@ -557,14 +557,14 @@ components:
           examples: ["S256"]
         response_type:
           description: |
-            PoPP-Modul will get an authorization code, and will
+            PoPP-Module will get an authorization code, and will
             exchange this code against an access token.
           type: "string"
           examples: ["code"]
 
     TokenRequestHealthIdSchema:
       description: |
-        PoPP-Modul sends an oauth-complaint token request with pkce
+        PoPP-Module sends an oauth-complaint token request with pkce
       type: object
       properties:
         grant_type:
@@ -600,7 +600,7 @@ components:
           pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
 
     TokenRequestEHCSchema:
-      description: PoPP-Modul sends an oauth-complaint token request with pkce
+      description: PoPP-Module sends an oauth-complaint token request with pkce
       type: object
       properties:
         grant_type:

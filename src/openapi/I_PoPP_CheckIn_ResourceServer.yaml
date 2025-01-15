@@ -63,7 +63,7 @@ tags:
     Authenticating a user against the IDP is a task of the authenticator
     belonging to the IDP on the insured person’s device. 
 
-    A successful login provides an PoPP-Modul access token and causes an
+    A successful login provides an PoPP-Module access token and causes an
     authorized user allowing access to the protected resource (PoPP-Service)
     to get a TAN-Set.
 
@@ -73,7 +73,7 @@ tags:
     The insured person uses his eHealth-Card for validation.
     The PoPP-Service Authorization Server generate an card-communication
     access token.
-    PoPP-Modul use card-communication access token for communication with
+    PoPP-Module use card-communication access token for communication with
     PoPP-Service to read data from eHealth-Card.
    
     A successful evaluation of eHealth-Card data provides a TAN-Set.    
@@ -95,7 +95,7 @@ paths:
         Sends a request to the PoPP-Service Resource Server.
        
         **Client**:</br>
-        A registered PoPP-Modul sends a request to the
+        A registered PoPP-Module sends a request to the
         PoPP-Service Resource Server to get a TAN or a TAN-Set.
         The authorization SHALL be "ehealthId-check" Access Token. <br/>
        
@@ -141,7 +141,7 @@ paths:
         Sends a request to the PoPP-Service Resource Server.
        
         **Client**:</br>
-        A registered PoPP-Modul sends a request to the PoPP-Service Resource
+        A registered PoPP-Module sends a request to the PoPP-Service Resource
         Server to get a TAN after checking the eHealth-Card.
         The authorization must be "card-check" Access Token. <br/>
        
