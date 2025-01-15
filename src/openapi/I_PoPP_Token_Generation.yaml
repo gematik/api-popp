@@ -476,8 +476,9 @@ components:
           type: string
           description: |
             Profession OID of the actor.
-      required: [afi TODO] Warum ist Attribut "iss" nicht 'required'? Absicht? Fehlt?
+      required:
         - version
+        - iss
         - iat
         - proofMethod
         - patientProofTime
