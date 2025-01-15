@@ -3,7 +3,7 @@
 # Changelog
 This is the changelog for the project described in [README.md](./README.md).
 
-The changelog follows [Keep a Changelog v1.0.0][], i.e. each release has the
+The changelog follows [Keep a Changelog v1.0.0][], i.e., each release has the
 following sections (if non-empty):
 - Summary: Git-commit message
 - Added
