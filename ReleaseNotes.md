@@ -10,7 +10,15 @@
 </details>
 
 ## Release 1.0.0
-- Description of the interface between component "PoPP26-Service" on
-  one hand and a Konnektor on the other hand for the purpose of sending
-  arbitrary ISO/IEC 7816-4 command APDU to a smartcard available in an
-  eHealth-Cardterminal connected to the Konnektor.
+This project describes the following interfaces:
+
+1. "I_PoPP_CheckIn_AuthorizationServer.yaml"  
+   Interface from a PoPP-Module to PoPP-Service Authorization Server,
+   this interface is used during a mobile Check-in to get an access token.
+2. "I_PoPP_CheckIn_ResourceServer.yaml"  
+   Interface from a PoPP-Module to PoPP-Service Resource Server,
+   this interface is used to exchange an access token with a TAN-Set-Record.
+3. "I_PoPP_Token_Generation.yaml"  
+   Interface from a PoPP-Client to a PoPP-Service,
+   this interface is used to create a PoPP-Token by the PoPP-Service and
+   transfer the PoPP-Token to the PoPP-Client.
