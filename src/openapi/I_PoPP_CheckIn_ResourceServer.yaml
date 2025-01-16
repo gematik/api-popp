@@ -244,7 +244,7 @@ components:
             $ref: '#/components/schemas/ErrorSchema'
 
     Error403Forbidden:
-      description: HttpStatus.FORBIDDEN (403)
+      description: HttpStatus.FORBIDDEN (403) [afi TODO] Dieser Fehler wird nirgens in dieser Datei verwendet. Kann er gelöscht werden? Soll err irgendwo referenziert werden?
       content:
         application/json:
           example:
@@ -253,7 +253,7 @@ components:
             $ref: '#/components/schemas/ErrorSchema'
 
     Error404NotFound:
-      description: HttpStatus.NOT_FOUND (404)
+      description: HttpStatus.NOT_FOUND (404) [afi TODO] Dieser Fehler wird nirgens in dieser Datei verwendet. Kann er gelöscht werden? Soll err irgendwo referenziert werden?
       content:
         application/json:
           example:
@@ -262,7 +262,7 @@ components:
             $ref: '#/components/schemas/ErrorSchema'
 
     Error409Conflict:
-      description:  HttpStatus.CONFLICT (409).
+      description:  HttpStatus.CONFLICT (409). [afi TODO] Dieser Fehler wird nirgens in dieser Datei verwendet. Kann er gelöscht werden? Soll err irgendwo referenziert werden?
       content:
         application/json:
           example:
