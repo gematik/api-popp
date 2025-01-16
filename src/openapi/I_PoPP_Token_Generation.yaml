@@ -277,7 +277,8 @@ components:
             The responses from the smartcard.
             The 1st element corresponds to the 1st command APDU from a Scenario.
             The n-th element corresponds to the n-th command APDU from a Scenario.
-            The array is empty if and only if a Scenario does not command APDU.
+            The array is empty if and only if a Scenario does not contain any
+            command APDU.
           items:
             type: string
             description: |
