@@ -10,6 +10,16 @@
   </ol>
 </details>
 
+## Release 2.1.0
+
+Summary of changes in release 2.0.0 compared to 2.1.0:
+1. add interface "I_PoPP_CheckIn_AuthorizationServer.yaml"  
+   Interface from a PoPP-Module to PoPP-Service Authorization Server,
+   this interface is used during a mobile Check-in to get an access token.
+2. add interface "I_PoPP_CheckIn_ResourceServer.yaml"  
+   Interface from a PoPP-Module to PoPP-Service Resource Server,
+   this interface is used to exchange an access token with a TAN-Set-Record.
+
 ## Release 2.0.0
 This release describes the following interface which substitutes the interface
 from release 1.0.0:
