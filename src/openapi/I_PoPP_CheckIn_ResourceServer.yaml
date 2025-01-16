@@ -147,7 +147,7 @@ paths:
        
         **Provider**:</br>
         The PoPP-Service Resource Server checks the "card-check" Access Token.
-        The PoPP-Service Resource Server verifes the eHealth-Card by communicating
+        The PoPP-Service Resource Server verifies the eHealth-Card by communicating
         with the card.
         The PoPP-Service Resource Server uses information from the card to create
         an TAN-Set-Record.
@@ -156,12 +156,12 @@ paths:
         Additionally, the PoPP-Service Resource Server timestamps "iat" and "exp"
         for the validity period of the TAN. 
               
-        | Conditions                               | Status code | Error code       | Remarks |
-        |------------------------------------------|-------------|------------------|---------|
-        | Successful operation                     | 200         | successful       |         |
-        | Request does not match schema            | 400         | malformedRequest |         |
-        | "card-check" Access Token not valid      | 401         | unauthorized     | PoPP-Service Resource Server does not except the Access-Token |
-        | Any other error                          | 500         | internalError    |         |
+        | Conditions                          | Status code | Error code       | Remarks |
+        |-------------------------------------|-------------|------------------|---------|
+        | Successful operation                | 200         | successful       |         |
+        | Request does not match schema       | 400         | malformedRequest |         |
+        | "card-check" Access Token not valid | 401         | unauthorized     | PoPP-Service Resource Server does not except the Access-Token |
+        | Any other error                     | 500         | internalError    |         |
 
       responses:
         '200':
