@@ -15,41 +15,8 @@
 </details>
 
 ## About the Project
-
-This project is part of a PoPP (Proof of Patient Presence) Variant 2b (i.e.,
-the electronic Health Card (eHC) is connected via an eHealth-Cardterminal
-(eHCT)).
-The component PoPP-Service needs information from the eHC, but has no direct
-connection to the eHC.
-Thus, the PoPP-Service sends a "Scenario" via the PoPP-Client to the Konnektor.
-The Konnektor sends the ISO/IEC 7816-4 command APDu from the "Scenario" to the
-eHC (via the eHCT) and collects the corresponding responses APDU.
-The collected response APDU are returned to the PoPP-Service (also via the
-PoPP-Client).
-
-In particular this project describes the interface to and from the Konnektor
-regarding the handling of "Scenarios". For further details, consult the
-[Specification](./scenario/Specification.md).
-
-```plantuml
-'https://plantuml.com/en/
-skinparam componentStyle rectangle
-
-component [Konnektor]   as "Konnektor"    #white
-component [eHKT]        as "eHCT"         #white
-component [PoppService] as "PoPP-Service" #white
-component [PoppClient]  as "PoPP-Client"  #white
-component [eGK]         as "eHC"          #white
-note "Card-to-Card with\nTrusted Channel via\nPopp-Client" as n1
-
-eGK         -- eHKT
-eHKT        -- Konnektor
-Konnektor   -- PoppClient
-Konnektor   -  n1          #white
-PoppClient  -  PoppService
-eGK         -  n1          #red
-n1          -  PoppService #red
-```
+This project provides interface specifications for PoPP-Service.
+For a specification of the PoPP-Service, visit [gemSpec_Pages][].
 
 ## Release Notes
 See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the
@@ -60,10 +27,11 @@ See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
 
 ## Folder Structure
 
-| Folder   | Subfolder | Content                                                |
-|:---------|-----------|--------------------------------------------------------|
-| images   |           | static image material for rendering Markdown documents |
-| scenario |           | specification of "scenario" and corresponding response | 
+
+| Folder | Subfolder | Content                                                |
+|:-------|-----------|--------------------------------------------------------|
+| images |           | static image material for rendering Markdown documents |
+| src    | openapi   | API as [YAML][]-files with [OpenAPI][] content         | 
 
 ## Contributing
 If you want to contribute, please check our [CONTRIBUTING.md](./CONTRIBUTING.md).
@@ -96,3 +64,7 @@ adaptation of the results to a more current state of the art.
 
 Gematik may remove published results temporarily or permanently from the place
 of publication at any time without prior notice or justification.
+
+[OpenAPI]:https://www.openapis.org/
+[YAML]:https://yaml.org/
+[gemSpec_Pages]:https://gemspec.gematik.de/docs/gemSpec/
