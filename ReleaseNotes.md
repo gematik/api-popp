@@ -14,7 +14,7 @@
 This release describes the following interface which substitutes the interface
 from release 1.0.0:
 
-1. "I_PoPP_Token_Generation.yaml"  
+- "I_PoPP_Token_Generation.yaml"  
    Interface from a PoPP-Client to a PoPP-Service,
    this interface is used to create a PoPP-Token by the PoPP-Service and
    transfer the PoPP-Token to the PoPP-Client.

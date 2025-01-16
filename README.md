@@ -15,7 +15,6 @@
 </details>
 
 ## About the Project
-
 This project provides interface specifications for PoPP-Service.
 For a specification of the PoPP-Service, visit [gemSpec_Pages][].
 
@@ -27,6 +26,7 @@ See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the
 See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
 
 ## Folder Structure
+
 
 | Folder | Subfolder | Content                                                |
 |:-------|-----------|--------------------------------------------------------|
@@ -64,7 +64,6 @@ adaptation of the results to a more current state of the art.
 
 Gematik may remove published results temporarily or permanently from the place
 of publication at any time without prior notice or justification.
-
 
 [OpenAPI]:https://www.openapis.org/
 [YAML]:https://yaml.org/
