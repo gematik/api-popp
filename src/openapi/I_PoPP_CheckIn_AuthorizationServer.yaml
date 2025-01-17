@@ -478,23 +478,23 @@ components:
             The application needs to send the authorization code to the
             PoPP-Service Authorization Server.
             The PoPP-Service Authorization Server exchanges the authorization code to an access token.
-          type: "string"
+          type: string
           examples: ["https://myApplication.de"]
         code_challenge:
           description: |
             see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
-          type: "string"
+          type: string
           examples: ["K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"]
         code_challenge_method:
           description: |
             see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
-          type: "string"
+          type: string
           examples: ["S256"]
         response_type:
           description: |
             PoPP-Module will get an authorization code, and will exchange this
             code for an access token.
-          type: "string"
+          type: string
           examples: ["code"]
 
     AuthorizationResponse200Schema:
@@ -535,30 +535,30 @@ components:
           description: |
             Necessary security parameter,
             see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
-          type: "string"
+          type: string
           examples: ["myPoPPFdVGeneratedState"]
         redirect_uri:
           description: |
             Destination URL for the authorization code.
             The authorization code is used to redeem against an access token
             used in the PoPP-Service Authorization Server.
-          type: "string"
+          type: string
           examples: ["https://myApplication.de"]
         code_challenge:
           description: |
             see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
-          type: "string"
+          type: string
           examples: ["K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"]
         code_challenge_method:
           description: |
             see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
-          type: "string"
+          type: string
           examples: ["S256"]
         response_type:
           description: |
             PoPP-Module will get an authorization code, and will
             exchange this code against an access token.
-          type: "string"
+          type: string
           examples: ["code"]
 
     TokenRequestHealthIdSchema:
@@ -587,7 +587,7 @@ components:
           examples: ["myApplicationPoPPFdV"]
         redirect_uri:
           description: Destination URL for the access token.
-          type: "string"
+          type: string
           examples: ["https://myApplication.de"]
 
     TokenResponseHealthId200Schema:
@@ -623,7 +623,7 @@ components:
           examples: ["myApplicationPoPPFdV"]
         redirect_uri:
           description: Destination URL for the access token.
-          type: "string"
+          type: string
           examples: ["https://myApplication.de"]
 
     TokenResponseEHC200Schema:
