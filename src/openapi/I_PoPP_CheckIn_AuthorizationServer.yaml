@@ -60,7 +60,7 @@ tags:
     The insured person uses a device to authenticate himself to the health
     insurance company's sectoral IDP (GesundheitsID).
     The PoPP-Service Authorization Server must know the address of the IDP
-    (iss-idp) with which the insured is registered. [afi TODO]: "insured what", "insured person" or "insurance".
+    (iss-idp) with which the insured person is registered. 
     For this reason, it is possible to view a list of registered IDPs
     (insurance companies) on PoPP-Modul.
     If the PoPP-Service Authorization Server does not know the IDP address of
@@ -355,7 +355,7 @@ components:
           - "organizationID": IK-Nummer
           - "telematikId": Telematik-ID of an eHealth institution
           - "poppfdv": Information about registered PoPP-Modul
-          - "shortTan": short TAN needed [afi TODO] Wird hier stets eine "kurze"-TAN transportiert?
+          - "shortTan": false (default), set to true when short TAN needed 
         - signature contains token signature
       content:
         application/jwt:
@@ -377,8 +377,8 @@ components:
           - "iat": issued at timestamp
           - "exp": expiry timestamp (always iat + 120 min)
           - "telematikId": Telematik-ID of an eHealth institution
-          - "poppfdv": Information about registered PoPP-Module [afi TODO]: Heißt das noch poppfdv?
-          - "shortTan": short TAN needed [afi TODO] Wird hier stets eine "kurze"-TAN transportiert?
+          - "poppmodul": Information about registered PoPP-Modul
+          - "shortTan": false (default), set to true when short TAN needed 
         - signature contains token signature
       content:
         application/jwt:
@@ -470,15 +470,14 @@ components:
           description: |
             Necessary security parameter, see
             https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
-          type: "string" [afi TODO] wieso wird "string" hier in Gänsefüßchen geschrieben und weiter oben nicht? Prüfen und ggf. global such und ersetzen.
-          examples: ["]myPoPPFdVGeneratedState"] [afi TODO]: Wieso fängt hier das Beispiel mit einer "geschlossenen eckigen Klammer" an? Prüfen und ggf. korrigieren.
+          type: string
+          examples: ["myPoPPFdVGeneratedState"] 
         redirect_uri:
           description: |
             Destination URL for the authorization code.
             The application needs to send the authorization code to the
-            Popp application server. [afi TODO]: Was ist ein "Popp application server"? Ist hier und in der folgenden Zeile "PoPP-Service Authorization Server" gemeint?
-            The PoPP application server uses the authorization code to redeem
-            an ID token at the sectoral IDP.
+            PoPP-Service Authorization Server.
+            The PoPP-Service Authorization Server exchanges the authorization code to an access token.
           type: "string"
           examples: ["https://myApplication.de"]
         code_challenge:
@@ -515,7 +514,7 @@ components:
           type: string
           examples: ["myPoPPFdVGeneratedState"]
 
-    AuthorizationRequestEHCSchema: [afi TODO]: Ist das noch aktuell? In gemSpec_PoPP_Service fehlt das.
+    AuthorizationRequestEHCSchema: 
       description: |
         PoPP-Module sends an oauth-complaint authorization request with pkce
       type: object
