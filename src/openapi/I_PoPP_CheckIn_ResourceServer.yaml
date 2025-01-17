@@ -3,7 +3,7 @@ info:
   title: PoPP-Service Resource Server for 3rd party applications
   description: |
     This interface provides access to PoPP-Service Resource Server for applications.
-    Via this interface, client systems that implement a PoPP-Module
+    Via this interface, client systems that implement a PoPP-Modul
     can carry out TAN generation. 
     The client system receives TAN which can be presented at a practitioner system
     to exchange the TAN for a PoPP-Token. 
@@ -49,11 +49,10 @@ servers:
 tags:
 - name: Authorization Health-ID
   description: |
-    [afi TODO]: Ist dieses Tag noch relevant? Das PoPP-Modul hat doch schon ein Access Token?
     The insured person uses a device to authenticate himself to the health
     insurance company's sectoral IDP (GesundheitsID).
     The PoPP-Service Authorization Server must know the address of the IDP
-    (iss-idp) with which the insured is registered. [afi TODO]: "insured what", "insured person" or "insurance".
+    (iss-idp) with which the insured person is registered. 
     For this reason, it is possible to view a list of registered IDPs
     (insurance companies) on PoPP-Modul.
     If the PoPP-Service Authorization Server does not know the IDP address of
@@ -63,13 +62,12 @@ tags:
     Authenticating a user against the IDP is a task of the authenticator
     belonging to the IDP on the insured person’s device. 
 
-    A successful login provides an PoPP-Module access token and causes an
-    authorized user allowing access to the protected resource (PoPP-Service)
-    to get a TAN-Set.
+    Using an access token a PoPP-Module enables an authorized user accessing the protected resource (PoPP-Service) to get a TAN-Set.
+
+    A TAN is presented to the IT-System of a practitioner as affirmative action of the insured person authorizing the health care professional to access care relevant data of the insured person.
 
 - name: Authorization eHealth-Card
   description: |
-    [afi TODO]: Ist dieses Tag noch relevant? Das PoPP-Modul hat doch schon ein Access Token?
     The insured person uses his eHealth-Card for validation.
     The PoPP-Service Authorization Server generate an card-communication
     access token.
@@ -113,7 +111,8 @@ paths:
         |-----------------------------------------|-------------|------------------|---------|
         | Successful operation                    | 200         | successful       |         |
         | Request does not match schema           | 400         | malformedRequest |         |
-        | "eHealth-ID-check" Access Token invalid | 401         | unauthorized     | PoPP-Service Resource Server does not except the Access-Token |
+        | "eHealth-ID-check" Access Token invalid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token |
+        |  "eHealth-ID-check" Access Token missing| 403         | invalAuth     | PoPP-Service Resource Server does not accept request without Access-Token |
         | Any other error                         | 500         | internalError    |         |
 
       responses:
@@ -160,7 +159,8 @@ paths:
         |-------------------------------------|-------------|------------------|---------|
         | Successful operation                | 200         | successful       |         |
         | Request does not match schema       | 400         | malformedRequest |         |
-        | "card-check" Access Token not valid | 401         | unauthorized     | PoPP-Service Resource Server does not except the Access-Token |
+        | "card-check" Access Token not valid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token |
+        | "card-check" Access Token missing   | 403         | invalAuth     | PoPP-Service Resource Server does not accept request without Access-Token |
         | Any other error                     | 500         | internalError    |         |
 
       responses:
@@ -244,29 +244,11 @@ components:
             $ref: '#/components/schemas/ErrorSchema'
 
     Error403Forbidden:
-      description: HttpStatus.FORBIDDEN (403) [afi TODO] Dieser Fehler wird nirgens in dieser Datei verwendet. Kann er gelöscht werden? Soll err irgendwo referenziert werden?
+      description: HttpStatus.FORBIDDEN (403) 
       content:
         application/json:
           example:
             errorCode: invalAuth
-          schema:
-            $ref: '#/components/schemas/ErrorSchema'
-
-    Error404NotFound:
-      description: HttpStatus.NOT_FOUND (404) [afi TODO] Dieser Fehler wird nirgens in dieser Datei verwendet. Kann er gelöscht werden? Soll err irgendwo referenziert werden?
-      content:
-        application/json:
-          example:
-            errorCode: noResource
-          schema:
-            $ref: '#/components/schemas/ErrorSchema'
-
-    Error409Conflict:
-      description:  HttpStatus.CONFLICT (409). [afi TODO] Dieser Fehler wird nirgens in dieser Datei verwendet. Kann er gelöscht werden? Soll err irgendwo referenziert werden?
-      content:
-        application/json:
-          example:
-            errorCode: statusMismatch
           schema:
             $ref: '#/components/schemas/ErrorSchema'
 
