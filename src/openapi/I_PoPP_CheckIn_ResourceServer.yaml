@@ -112,7 +112,7 @@ paths:
         | Successful operation                    | 200         | successful       |         |
         | Request does not match schema           | 400         | malformedRequest |         |
         | "eHealth-ID-check" Access Token invalid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token |
-        |  "eHealth-ID-check" Access Token missing| 403         | invalAuth     | PoPP-Service Resource Server does not accept request without Access-Token |
+        | "eHealth-ID-check" Access Token missing | 403         | invalAuth        | PoPP-Service Resource Server does not accept request without Access-Token |
         | Any other error                         | 500         | internalError    |         |
 
       responses:
@@ -160,7 +160,7 @@ paths:
         | Successful operation                | 200         | successful       |         |
         | Request does not match schema       | 400         | malformedRequest |         |
         | "card-check" Access Token not valid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token |
-        | "card-check" Access Token missing   | 403         | invalAuth     | PoPP-Service Resource Server does not accept request without Access-Token |
+        | "card-check" Access Token missing   | 403         | invalAuth        | PoPP-Service Resource Server does not accept request without Access-Token |
         | Any other error                     | 500         | internalError    |         |
 
       responses:
