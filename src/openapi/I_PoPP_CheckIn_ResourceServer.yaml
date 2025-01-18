@@ -62,9 +62,12 @@ tags:
     Authenticating a user against the IDP is a task of the authenticator
     belonging to the IDP on the insured person’s device. 
 
-    Using an access token a PoPP-Module enables an authorized user accessing the protected resource (PoPP-Service) to get a TAN-Set.
+    Using an access token a PoPP-Module enables an authorized user accessing
+    the protected resource (PoPP-Service) to get a TAN-Set.
 
-    A TAN is presented to the IT-System of a practitioner as affirmative action of the insured person authorizing the health care professional to access care relevant data of the insured person.
+    A TAN is presented to the IT-System of a practitioner as affirmative action
+    of the insured person authorizing the health care professional to access
+    care relevant data of the insured person.
 
 - name: Authorization eHealth-Card
   description: |
@@ -107,13 +110,13 @@ paths:
         Additionally, the PoPP-Service Resource Server timestamps "iat" and "exp"
         for the validity period of the TAN/TAN-Set-Record. 
               
-        | Conditions                              | Status code | Error code       | Remarks |
-        |-----------------------------------------|-------------|------------------|---------|
-        | Successful operation                    | 200         | successful       |         |
-        | Request does not match schema           | 400         | malformedRequest |         |
-        | "eHealth-ID-check" Access Token invalid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token |
+        | Conditions                              | Status code | Error code       | Remarks                                                                   |
+        |-----------------------------------------|-------------|------------------|---------------------------------------------------------------------------|
+        | Successful operation                    | 200         | successful       |                                                                           |
+        | Request does not match schema           | 400         | malformedRequest |                                                                           |
+        | "eHealth-ID-check" Access Token invalid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token             |
         | "eHealth-ID-check" Access Token missing | 403         | invalAuth        | PoPP-Service Resource Server does not accept request without Access-Token |
-        | Any other error                         | 500         | internalError    |         |
+        | Any other error                         | 500         | internalError    |                                                                           |
 
       responses:
         '200':
@@ -155,13 +158,13 @@ paths:
         Additionally, the PoPP-Service Resource Server timestamps "iat" and "exp"
         for the validity period of the TAN. 
               
-        | Conditions                          | Status code | Error code       | Remarks |
-        |-------------------------------------|-------------|------------------|---------|
-        | Successful operation                | 200         | successful       |         |
-        | Request does not match schema       | 400         | malformedRequest |         |
-        | "card-check" Access Token not valid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token |
+        | Conditions                          | Status code | Error code       | Remarks                                                                   |
+        |-------------------------------------|-------------|------------------|---------------------------------------------------------------------------|
+        | Successful operation                | 200         | successful       |                                                                           |
+        | Request does not match schema       | 400         | malformedRequest |                                                                           |
+        | "card-check" Access Token not valid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token             |
         | "card-check" Access Token missing   | 403         | invalAuth        | PoPP-Service Resource Server does not accept request without Access-Token |
-        | Any other error                     | 500         | internalError    |         |
+        | Any other error                     | 500         | internalError    |                                                                           |
 
       responses:
         '200':
@@ -244,7 +247,7 @@ components:
             $ref: '#/components/schemas/ErrorSchema'
 
     Error403Forbidden:
-      description: HttpStatus.FORBIDDEN (403) 
+      description: HttpStatus.FORBIDDEN (403)
       content:
         application/json:
           example:

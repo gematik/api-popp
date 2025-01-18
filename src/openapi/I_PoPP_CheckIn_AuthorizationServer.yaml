@@ -242,12 +242,12 @@ paths:
         Depending on the authorization code the PoPP-Service Authorization Server
         sends a PoPP-Module access token to the PoPP-Modul.
 
-        | Conditions                                               | Status code | Error code       | Remarks |
-        |----------------------------------------------------------|-------------|------------------|---------|
-        | Successful operation                                     | 200         | successful       |         |
-        | Request does not match schema                            | 400         | malformedRequest |         |
+        | Conditions                                               | Status code | Error code       | Remarks                                                                           |
+        |----------------------------------------------------------|-------------|------------------|-----------------------------------------------------------------------------------|
+        | Successful operation                                     | 200         | successful       |                                                                                   |
+        | Request does not match schema                            | 400         | malformedRequest |                                                                                   |
         | mismatch authorization code or code verifier or clientId | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value or pkce proof failed |
-        | Any other error                                          | 500         | internalError    |         |
+        | Any other error                                          | 500         | internalError    |                                                                                   |
 
       requestBody:
         description: |
@@ -293,12 +293,12 @@ paths:
         sends a card-communication access token or a PoPP-Module access token to
         the PoPP-Modul.
       
-        | Conditions                                              | Status code | Error code       | Remarks |
-        |---------------------------------------------------------|-------------|------------------|---------|
-        | Successful operation                                    | 200         | successful       |         |
-        | Request does not match schema                           | 400         | malformedRequest |         |
+        | Conditions                                              | Status code | Error code       | Remarks                                                                           |
+        |---------------------------------------------------------|-------------|------------------|-----------------------------------------------------------------------------------|
+        | Successful operation                                    | 200         | successful       |                                                                                   |
+        | Request does not match schema                           | 400         | malformedRequest |                                                                                   |
         | mismatch authorizationcode or code verifier or clientId | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value or pkce proof failed |
-        | Any other error                                         | 500         | internalError    |         |
+        | Any other error                                         | 500         | internalError    |                                                                                   |
 
       requestBody:
         description: |
@@ -471,13 +471,14 @@ components:
             Necessary security parameter, see
             https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
           type: string
-          examples: ["myPoPPFdVGeneratedState"] 
+          examples: ["myPoPPFdVGeneratedState"]
         redirect_uri:
           description: |
             Destination URL for the authorization code.
             The application needs to send the authorization code to the
             PoPP-Service Authorization Server.
-            The PoPP-Service Authorization Server exchanges the authorization code to an access token.
+            The PoPP-Service Authorization Server exchanges the authorization
+            code to an access token.
           type: string
           examples: ["https://myApplication.de"]
         code_challenge:
@@ -514,7 +515,7 @@ components:
           type: string
           examples: ["myPoPPFdVGeneratedState"]
 
-    AuthorizationRequestEHCSchema: 
+    AuthorizationRequestEHCSchema:
       description: |
         PoPP-Module sends an oauth-complaint authorization request with pkce
       type: object
