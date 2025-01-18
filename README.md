@@ -15,7 +15,6 @@
 </details>
 
 ## About the Project
-
 This project provides interface specifications for PoPP-Service.
 For a specification of the PoPP-Service, visit [gemSpec_Pages][].
 
@@ -27,6 +26,7 @@ See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the
 See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
 
 ## Folder Structure
+This project has the following folders:
 
 | Folder | Subfolder | Content                                                |
 |:-------|-----------|--------------------------------------------------------|
@@ -37,7 +37,6 @@ See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
 If you want to contribute, please check our [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
-
 Copyright 2024 gematik GmbH
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -64,7 +63,6 @@ adaptation of the results to a more current state of the art.
 
 Gematik may remove published results temporarily or permanently from the place
 of publication at any time without prior notice or justification.
-
 
 [OpenAPI]:https://www.openapis.org/
 [YAML]:https://yaml.org/

@@ -5,26 +5,25 @@
 <details>
   <summary>Table of Contents</summary>
   <ol>
+    <li><a href="#release-210">Release 2.1.0</a></li>
     <li><a href="#release-200">Release 2.0.0</a></li>
     <li><a href="#release-100">Release 1.0.0</a></li>
   </ol>
 </details>
 
 ## Release 2.1.0
+This release describes three interfaces:
+1. "I_PoPP_CheckIn_AuthorizationServer.yaml"
+2. "I_PoPP_CheckIn_ResourceServer.yaml"
+3. "I_PoPP_Token_Generation.yaml"
 
-Summary of changes in release 2.0.0 compared to 2.1.0:
-1. add interface "I_PoPP_CheckIn_AuthorizationServer.yaml"  
-   Interface from a PoPP-Module to PoPP-Service Authorization Server,
-   this interface is used during a mobile Check-in to get an access token.
-2. add interface "I_PoPP_CheckIn_ResourceServer.yaml"  
-   Interface from a PoPP-Module to PoPP-Service Resource Server,
-   this interface is used to exchange an access token with a TAN-Set-Record.
+This release corresponds to the first version of gemSpec_PoPP_Service.
 
 ## Release 2.0.0
 This release describes the following interface which substitutes the interface
 from release 1.0.0:
 
-1. "I_PoPP_Token_Generation.yaml"  
+- "I_PoPP_Token_Generation.yaml"  
    Interface from a PoPP-Client to a PoPP-Service,
    this interface is used to create a PoPP-Token by the PoPP-Service and
    transfer the PoPP-Token to the PoPP-Client.
