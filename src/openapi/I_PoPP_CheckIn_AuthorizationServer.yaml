@@ -118,7 +118,7 @@ paths:
         The code challenge method (code_challenge_method) SHALL be “S256”.
         The response type (response_type) SHALL be "code".
         It is necessary to generate and propagate a "nonce" parameter.
-        The acr-value in the PAR SHALL be "gematic_ehealth_loa_high", the
+        The acr-value in the PAR SHALL be "gematik-ehealth-loa-high", the
         scope parameter used in the PAR SHALL be "urn:telematik:versicherter".  
 
         The authorization server state value and clientid used for the PAR SHALL
