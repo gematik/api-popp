@@ -29,6 +29,9 @@ Summary of changes in release 2.1.0 compared to 2.0.0:
 1. added:
    1. interface "I_PoPP_CheckIn_AuthorizationServer.yaml"
    2. interface "I_PoPP_CheckIn_ResourceServer.yaml"
+2. changed
+   1. removed property "x5c" for object "TokenHeaders"
+      in interface "I_PoPP_Token_Generation.yaml"      
 
 ## Release 2.0.0
 Summary of changes in release 2.0.0 compared to 1.0.0:
