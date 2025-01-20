@@ -362,7 +362,6 @@ components:
         - typ: "vnd.telematik.popp+jwt"
           alg: "ES256"
           kid: "x_vW4LVDipvu8iUQ5alKsZLWtH6jh4eJ4c5offXtMV0"
-          x5c: [ "MIIBI..." ]
 
     # PoPP Token Claims
     TokenClaims:
