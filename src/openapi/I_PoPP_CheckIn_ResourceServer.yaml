@@ -98,10 +98,10 @@ paths:
         **Client**:</br>
         A registered PoPP-Module sends a request to the
         PoPP-Service Resource Server to get a TAN or a TAN-Set.
-        The authorization SHALL be "ehealthId-check" Access Token. <br/>
+        The authorization SHALL be "eHealth-ID-check" Access Token. <br/>
        
         **Provider**:</br>
-        The PoPP-Service Resource Server checks the "ehealthId-check" Access-Token.
+        The PoPP-Service Resource Server checks the "eHealth-ID-check" Access-Token.
         The PoPP-Service Resource Server uses information from the Access-Token
         to create an TAN-Set-Record.
         Depending on the information from the Access-Token the
@@ -306,7 +306,7 @@ components:
 
   securitySchemes:
     bearerAuthHealtId:
-      description: ehealthId-check Access-Token
+      description: eHealth-ID-check Access-Token
       type: http
       scheme: bearer
       bearerFormat: JWT
