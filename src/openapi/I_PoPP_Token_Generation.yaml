@@ -354,25 +354,14 @@ components:
             The key identifier of the key used to sign the token. 
             Key itself can be retrieved from the JWK endpoint of the PoPP
             server.
-        x5c:
-          type: array
-          items:
-            type: string
-            description: |
-              The X.509 certificate chain used to sign the token.
-              The first element is the certificate that was used to sign the token.
-              Certificates are encoded in DER and base64 encoded as described in
-              https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
       required:
         - typ
         - alg
         - kid
-        - x5c
       examples:
         - typ: "vnd.telematik.popp+jwt"
           alg: "ES256"
           kid: "x_vW4LVDipvu8iUQ5alKsZLWtH6jh4eJ4c5offXtMV0"
-          x5c: [ "MIIBI..." ]
 
     # PoPP Token Claims
     TokenClaims:

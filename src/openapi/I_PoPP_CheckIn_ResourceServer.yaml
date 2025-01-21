@@ -1,0 +1,317 @@
+openapi: 3.1.0
+info:
+  title: PoPP-Service Resource Server for 3rd party applications
+  description: |
+    This interface provides access to PoPP-Service Resource Server for applications.
+    Via this interface, client systems that implement a PoPP-Modul
+    can carry out TAN generation. 
+    The client system receives TAN which can be presented at a practitioner system
+    to exchange the TAN for a PoPP-Token. 
+
+    This interface describe the request of TANs. 
+    The client system utilizes an access token to gain access to the
+    PoPP-Service (resource server).
+    
+
+    **General conditions**:</br> 
+    For all operations if applicable:
+    - error responses may be extended by helpful information about the error
+    condition in _errorDetail_
+
+    **Prerequisites**:</br>
+    - The sectoral IDP of health insurance is registered with the TI-Federation.
+    - The PoPP-Service Authorization Server is registered with the TI-Federation.
+    - The client system is registered with the PoPP-Service Authorization Server. 
+    - The client system received an access token from the
+    PoPP-Service Authorization Server. 
+
+
+  contact:
+    name: gematik GmbH
+    url: 'https://www.gematik.de'
+
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+  version: 1.0.0
+
+  # version history:
+  # ----------------
+  # version 0.0.1
+  #   - initial version for review
+  # version 1.0.0
+  #   - first version for publication
+
+servers:
+- url: https://popp-service.de
+
+tags:
+- name: Authorization Health-ID
+  description: |
+    The insured person uses a device to authenticate himself to the health
+    insurance company's sectoral IDP (GesundheitsID).
+    The PoPP-Service Authorization Server must know the address of the IDP
+    (iss-idp) with which the insured person is registered. 
+    For this reason, it is possible to view a list of registered IDPs
+    (insurance companies) on PoPP-Modul.
+    If the PoPP-Service Authorization Server does not know the IDP address of
+    the calling PoPP-Modul, the insured person SHALL select their health
+    insurance company in the PoPP-Modul.
+    
+    Authenticating a user against the IDP is a task of the authenticator
+    belonging to the IDP on the insured person’s device. 
+
+    Using an access token a PoPP-Module enables an authorized user accessing
+    the protected resource (PoPP-Service) to get a TAN-Set.
+
+    A TAN is presented to the IT-System of a practitioner as affirmative action
+    of the insured person authorizing the health care professional to access
+    care relevant data of the insured person.
+
+- name: Authorization eHealth-Card
+  description: |
+    The insured person uses his eHealth-Card for validation.
+    The PoPP-Service Authorization Server generate an card-communication
+    access token.
+    PoPP-Module use card-communication access token for communication with
+    PoPP-Service to read data from eHealth-Card.
+   
+    A successful evaluation of eHealth-Card data provides a TAN-Set.    
+
+externalDocs:
+  description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_Modul'
+  url: https://gemspec.gematik.de/docs/gemSpec/
+
+paths:
+  /popp/patient/api/tan/v1/tan-request-healthid:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    post:
+      tags:
+        - Authorization Health-ID
+      operationId: generateTAN2KVNR
+      summary: Send request to obtain a TAN or TAN-Set.
+      description: | 
+        Sends a request to the PoPP-Service Resource Server.
+       
+        **Client**:</br>
+        A registered PoPP-Module sends a request to the
+        PoPP-Service Resource Server to get a TAN or a TAN-Set.
+        The authorization SHALL be "eHealth-ID-check" Access Token. <br/>
+       
+        **Provider**:</br>
+        The PoPP-Service Resource Server checks the "eHealth-ID-check" Access-Token.
+        The PoPP-Service Resource Server uses information from the Access-Token
+        to create an TAN-Set-Record.
+        Depending on the information from the Access-Token the
+        The PoPP-Service Resource Server creates a "short" TAN, or a "long" TAN
+        or a TAN-Set with more then one "long" TAN.
+        Additionally, the PoPP-Service Resource Server timestamps "iat" and "exp"
+        for the validity period of the TAN/TAN-Set-Record. 
+              
+        | Conditions                              | Status code | Error code       | Remarks                                                                   |
+        |-----------------------------------------|-------------|------------------|---------------------------------------------------------------------------|
+        | Successful operation                    | 200         | successful       |                                                                           |
+        | Request does not match schema           | 400         | malformedRequest |                                                                           |
+        | "eHealth-ID-check" Access Token invalid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token             |
+        | "eHealth-ID-check" Access Token missing | 403         | invalAuth        | PoPP-Service Resource Server does not accept request without Access-Token |
+        | Any other error                         | 500         | internalError    |                                                                           |
+
+      responses:
+        '200':
+          $ref: '#/components/responses/TanResponseHealthId200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '401':
+          $ref: '#/components/responses/Error401UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+      security:
+        - bearerAuthHealtId: []
+
+  /popp/patient/api/tan/v1/tan-request-ehc:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    post:
+      tags:
+        - Authorization eHealth-Card
+      operationId: generateTAN2EHCCheck
+      summary: Send request to check the eHealth-Card and obtain a TAN.
+      description: | 
+        Sends a request to the PoPP-Service Resource Server.
+       
+        **Client**:</br>
+        A registered PoPP-Module sends a request to the PoPP-Service Resource
+        Server to get a TAN after checking the eHealth-Card.
+        The authorization must be "card-check" Access Token. <br/>
+       
+        **Provider**:</br>
+        The PoPP-Service Resource Server checks the "card-check" Access Token.
+        The PoPP-Service Resource Server verifies the eHealth-Card by communicating
+        with the card.
+        The PoPP-Service Resource Server uses information from the card to create
+        an TAN-Set-Record.
+        Depending on the information from the Access-Token the PoPP-Service
+        Resource Server create a "short" TAN or a "long" TAN.
+        Additionally, the PoPP-Service Resource Server timestamps "iat" and "exp"
+        for the validity period of the TAN. 
+              
+        | Conditions                          | Status code | Error code       | Remarks                                                                   |
+        |-------------------------------------|-------------|------------------|---------------------------------------------------------------------------|
+        | Successful operation                | 200         | successful       |                                                                           |
+        | Request does not match schema       | 400         | malformedRequest |                                                                           |
+        | "card-check" Access Token not valid | 401         | unauthorized     | PoPP-Service Resource Server does not accept the Access-Token             |
+        | "card-check" Access Token missing   | 403         | invalAuth        | PoPP-Service Resource Server does not accept request without Access-Token |
+        | Any other error                     | 500         | internalError    |                                                                           |
+
+      responses:
+        '200':
+          $ref: '#/components/responses/TanResponseHealthId200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '401':
+          $ref: '#/components/responses/Error401UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+      security:
+        - bearerAuthEHC: []
+
+components:
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        $ref: '#/components/schemas/UserAgentSchema'
+
+  responses:
+    TanResponseHealthId200:
+      description: |
+        A JSON Web Token (JWT) with the following format according to RFC-7515:</br>
+        base64url (protected_header) + '.' + base64url (payload) + '.' + base64url (signature)"</br>
+        Content for device attestation:</br>
+        - protected_header contains:
+          - "typ": "JWT"
+          - "alg": "ES256" 
+        - payload claims:
+          - "exp": expiry timestamp of the generated TAN/TAN-Set
+          - "tan": generated TAN or TAN-Set
+        - signature contains signature of the PoPP-Service Resource Server
+      content:
+        application/jwt:
+          schema:
+            $ref: '#/components/schemas/TanResponseHealthId200Schema'
+          example:
+            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJhY3RvcklkIjoiQTEyMzQ1Njc4OSIsICJpYXQiOjE3MzY4OTkyMDAsImV4cCI6MTczNjkwNjQwMH0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
+
+    TanResponseEHC200:
+      description: |
+        A JSON Web Token (JWT) with the following format according to RFC-7515:</br>
+        base64url (protected_header) + '.' + base64url (payload) + '.' + base64url (signature)"</br>
+        Content for device attestation:</br>
+        - protected_header contains:
+          - "typ": "JWT"
+          - "alg": "ES256" 
+        - payload claims:
+          - "exp": expiry timestamp of the generated TAN
+          - "tan": generated TAN
+        - signature contains signature of the PoPP-Service Resource Server
+      content:
+        application/jwt:
+          schema:
+            $ref: '#/components/schemas/TanResponseEHC200Schema'
+          example:
+            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJhY3RvcklkIjoiQTEyMzQ1Njc4OSIsICJpYXQiOjE3MzY4OTkyMDAsImV4cCI6MTczNjkwNjQwMH0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
+
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error401UnauthorizedError:
+      description: HttpStatus.Unauthorized (401)
+      content:
+        application/json:
+          example:
+            errorCode: unauthorized
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error403Forbidden:
+      description: HttpStatus.FORBIDDEN (403)
+      content:
+        application/json:
+          example:
+            errorCode: invalAuth
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error500InternalError:
+      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+  schemas:
+    UserAgentSchema:
+      description: |
+        Information about client software with:
+        ClientId(20 characters) + / + VersionNumber (1 to 15 characters).
+      type: string
+      pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
+      examples: ["CLIENTID1234567890AB/2.1.12-45"]
+
+    TanResponseHealthId200Schema:
+      type: object
+      properties:
+        jwt:
+          type: string
+          format: application/jwt
+          pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
+
+    TanResponseEHC200Schema:
+      type: object
+      properties:
+        jwt:
+          type: string
+          format: application/jwt
+          pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
+
+    ErrorSchema:
+      description: |
+        Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: |
+            Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode
+
+  securitySchemes:
+    bearerAuthHealtId:
+      description: eHealth-ID-check Access-Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    bearerAuthEHC:
+      description: card-check Access-Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
