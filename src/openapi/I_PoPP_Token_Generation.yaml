@@ -322,13 +322,9 @@ components:
         token:
           type: string
           description: "PoPP token as JWT compact serialization."
-        pn:
-          type: string
-          description: "Prüfnachweis"
       required:
         - type
         - token
-        - pn
 
     # PoPP Token Headers
     TokenHeaders:
