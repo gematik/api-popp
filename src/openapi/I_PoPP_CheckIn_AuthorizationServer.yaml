@@ -497,6 +497,11 @@ components:
             code for an access token.
           type: string
           examples: ["code"]
+        telematikId:
+          description: |
+            PoPP-Module indicates the request for a LEI-specific TAN by including this optional parameter in the Request. If this parameter is absent in the request, only long TAN without LEI specificity are requested.
+          type: string
+          examples: ["1234567890"]
 
     AuthorizationResponse200Schema:
       description: |
@@ -561,6 +566,11 @@ components:
             exchange this code against an access token.
           type: string
           examples: ["code"]
+        telematikId:
+          description: |
+            PoPP-Module indicates the request for a LEI-specific TAN by including this optional parameter in the Request. If this parameter is absent in the request, only long TAN without LEI specificity are requested.
+          type: string
+          examples: ["1234567890"]
 
     TokenRequestHealthIdSchema:
       description: |
