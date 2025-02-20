@@ -198,16 +198,23 @@ components:
         - protected_header contains:
           - "typ": "JWT"
           - "alg": "ES256" 
-        - payload claims:
-          - "exp": expiry timestamp of the generated TAN/TAN-Set
-          - "tan": generated TAN or TAN-Set
+        - payload claims: contain tans and a hint for processing - structure of payload is defined by TanResponsePayloadSchema
+          - tans:
+              - iat: 1736899200
+                tan: 123456...40
+              - iat: 1736899201
+                tan: 223456...40
+          - hint:
+              - code: xyz
+              - description: maxTAN is exceeded, therefore less TANs than requested are returned
+            
         - signature contains signature of the PoPP-Service Resource Server
       content:
         application/jwt:
           schema:
             $ref: '#/components/schemas/TanResponseHealthId200Schema'
           example:
-            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJhY3RvcklkIjoiQTEyMzQ1Njc4OSIsICJpYXQiOjE3MzY4OTkyMDAsImV4cCI6MTczNjkwNjQwMH0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
+            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJ0YW5zIjpbeyJpYXQiOjE3MzY4OTkyMDAsInRhbiI6IjEyMzQ1Ni4uLjQwIn0seyJpYXQiOjE3MzY4OTkyMDEsInRhbiI6IjIyMzQ1Ni4uLjQwIn1dLCJoaW50Ijp7ImNvZGUiOiJ4eXoiLCJkZXNjcmlwdGlvbiI6Im1heFRBTiBpcyBleGNlZWRlZCwgdGhlcmVmb3JlIGxlc3MgVEFOcyB0aGFuIHJlcXVlc3RlZCBhcmUgcmV0dXJuZWQifX0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
 
     TanResponseEHC200:
       description: |
@@ -217,16 +224,22 @@ components:
         - protected_header contains:
           - "typ": "JWT"
           - "alg": "ES256" 
-        - payload claims:
-          - "exp": expiry timestamp of the generated TAN
-          - "tan": generated TAN
+        - payload claims: contain tans and a hint for processing - structure of payload is defined by TanResponsePayloadSchema
+          - tans:
+              - iat: 1736899200
+                tan: 123456...40
+              - iat: 1736899201
+                tan: 223456...40
+          - hint:
+              - code: xyz
+              - description: maxTAN is exceeded, therefore less TANs than requested are returned          
         - signature contains signature of the PoPP-Service Resource Server
       content:
         application/jwt:
           schema:
             $ref: '#/components/schemas/TanResponseEHC200Schema'
           example:
-            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJhY3RvcklkIjoiQTEyMzQ1Njc4OSIsICJpYXQiOjE3MzY4OTkyMDAsImV4cCI6MTczNjkwNjQwMH0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
+            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJ0YW5zIjpbeyJpYXQiOjE3MzY4OTkyMDAsInRhbiI6IjEyMzQ1Ni4uLjQwIn0seyJpYXQiOjE3MzY4OTkyMDEsInRhbiI6IjIyMzQ1Ni4uLjQwIn1dLCJoaW50Ijp7ImNvZGUiOiJ4eXoiLCJkZXNjcmlwdGlvbiI6Im1heFRBTiBpcyBleGNlZWRlZCwgdGhlcmVmb3JlIGxlc3MgVEFOcyB0aGFuIHJlcXVlc3RlZCBhcmUgcmV0dXJuZWQifX0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
 
     Error400BadRequest:
       description: HttpStatus.BAD_REQUEST (400)
@@ -273,19 +286,43 @@ components:
       pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
       examples: ["CLIENTID1234567890AB/2.1.12-45"]
 
+    TanResponsePayloadSchema:
+      description: |
+        structure returned in tan responses to convey tans and processing hint to the requestor
+      type: object
+      properties:
+        tans:
+          type: array
+          items:
+            type: object
+            properties:
+              iat:
+                type: number
+              tan:
+                type: string
+        hint:
+          type: object
+          properties:
+            code:
+              type: string
+            description:
+              type: string
+      
+
+
     TanResponseHealthId200Schema:
       type: object
       properties:
         jwt:
           type: string
           format: application/jwt
-          pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
+          pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$' 
 
     TanResponseEHC200Schema:
       type: object
       properties:
         jwt:
-          type: string
+          type: object
           format: application/jwt
           pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
 
