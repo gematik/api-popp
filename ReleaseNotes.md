@@ -5,10 +5,19 @@
 <details>
   <summary>Table of Contents</summary>
   <ol>
+    <li><a href="#release-300">Release 3.0.0</a></li>
     <li><a href="#release-200">Release 2.0.0</a></li>
     <li><a href="#release-100">Release 1.0.0</a></li>
   </ol>
 </details>
+
+## Release 3.0.0
+This release describes three interfaces:
+1. I_PoPP_CheckIn_AuthorizationServer.yaml
+2. I_PoPP_CheckIn_ResourceServer.yaml
+3. I_PoPP_Token_Generation.yaml
+
+This release corresponds to the first version of gemSpec_PoPP_Service.
 
 ## Release 2.0.0
 This release describes the following interface which substitutes the interface
