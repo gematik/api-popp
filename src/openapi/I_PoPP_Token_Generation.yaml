@@ -162,7 +162,7 @@ components:
           description: |
             An integer in range [0, 32767] indicating the time span in
             milliseconds for the PoPP-Service between receiving a
-            "ScenarioResultMessage" till the (expected) send time of the next
+            "ScenarioResponseMessage" till the (expected) send time of the next
             "StandardScenarioMessage" or "ConnectorScenarioMessage".
             A Connector or client uses this information to detect a timeout.
             The special value "timeSpan=0" indicates that this is the last
