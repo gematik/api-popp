@@ -254,10 +254,16 @@ components:
               End entity X.509 certificate with the signature verification key.
               Certificates are encoded in DER and base64 encoded as described in
               https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
+        stpl:
+          type: string
+          description: |
+            This is a base64 encoded representation of the OCSP response to the
+            end entity X.509 certificate in x5c.
       required:
         - typ
         - alg
         - x5c
+        - stpl
 
     ScenarioResponseMessage:
       type: object

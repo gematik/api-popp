@@ -29,9 +29,13 @@ Summary of changes in release 3.0.0 compared to 2.0.0:
 1. added:
    1. interface "I_PoPP_CheckIn_AuthorizationServer.yaml"
    2. interface "I_PoPP_CheckIn_ResourceServer.yaml"
+   3. claim "stpl" to object "ConnectorScenarioHeaders"
+      in interface "I_PoPP_Token_Generation.yaml"
 2. removed
    1. removed property "x5c" for object "TokenHeaders"
-      in interface "I_PoPP_Token_Generation.yaml"      
+      in interface "I_PoPP_Token_Generation.yaml"
+   2. removed property "pn" for object "TokenMessage"
+      in interface "I_PoPP_Token_Generation.yaml"
 
 ## Release 2.0.0
 Summary of changes in release 2.0.0 compared to 1.0.0:
