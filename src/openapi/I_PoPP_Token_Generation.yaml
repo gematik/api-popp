@@ -286,7 +286,7 @@ components:
       title: "Signed Scenario Headers"
       description: |
         The scenarios are signed by the PoPP-Service using JWT. This schema defines
-        the headers of such JWTss.
+        the headers of such JWTss
       properties:
         typ:
           type: string
