@@ -202,9 +202,60 @@ components:
 
     ConnectorScenarioMessage:
       type: object
-      title: "Encapsulates 'StandardScenarioMessage', forwarded to a Connector"
+      title: "Encapsulates a signed StandardScenarioMessage to be sent to a connector"
       description: |
-        JWT according to RFC 7519 with a StandardScenarioMessage as payload
+        Sent by the server to the client to execute one or more
+        command APDUs by an electronic Health-Card (eHC) via a connector.
+        The scenarios are signed by the PoPP-Service using JWT according to
+        RFC 7519 so that the connector can verify the integrity and authenticity
+        of the message.
+
+        1. PoPP-Service creates a `StandardScenarioMessage` as it would do in
+        regular communication with an eHC (without a connector).
+        2. PoPP-Service signs the `StandardScenarioMessage` using JWT. The
+        JWT headers and claims are defined in `SignedScenarioHeaders` and
+        `SignedScenarioClaims` schemas respectively.
+        3. PoPP-Service encapsulates the signed `StandardScenarioMessage` in a
+        `ConnectorScenarioMessage` and sends it to the client.
+        4. The client receives the `ConnectorScenarioMessage`, retrieves the JWT
+        containing the signed `StandardScenarioMessage` and forwards it to the connector.
+        
+        Sample `ConnectorScenarioMessage`:
+        ```json
+        {
+          "type": "ConnectorScenario",
+          "version": "1.0.0",
+          "signedScenario": "eyAB.cdEF.ghIJ"
+        }
+        ```
+        
+        Sample content of the signed `StandardScenarioMessage` (header, claims, signature):
+        ```json
+        {
+          "typ": "JWT"
+          "alg": "ES256"
+          "x5c": ["MII..."]
+          "stpl": "MII..."
+        }
+        .
+        {
+          "message": {
+            "type": "StandardScenario",
+            "version": "1.0.0",
+            "clientSessionId": "123e4567-e89b-12d3-a456-426614174000",
+            "sequenceCounter": 1,
+            "timeSpan": 1000,
+            "steps": [
+              {
+                "commandApdu": "00a4040c",
+                "expectedStatusWords": ["9000", "6f00"]
+              }
+            ]
+          }
+        }
+        .
+        signature
+        ```
       properties:
         type:
           type: string
@@ -230,11 +281,12 @@ components:
         - version
         - signedScenario
 
-    ConnectorScenarioHeaders:
+    SignedScenarioHeaders:
       type: object
-      title: "Connector Scenario Headers"
+      title: "Signed Scenario Headers"
       description: |
-        Schema for the headers of a ConnectorScenarioMessage.
+        The scenarios are signed by the PoPP-Service using JWT. This schema defines
+        the headers of such JWTss
       properties:
         typ:
           type: string
@@ -264,6 +316,18 @@ components:
         - alg
         - x5c
         - stpl
+
+    SignedScenarioClaims:
+      type: object
+      title: "Signed Scenario Claims"
+      description: |
+        The scenarios are signed by the PoPP-Service using JWT. This schema defines
+        the claims of such JWTs.
+      properties:
+        message:
+          - $ref: "#/components/schemas/StandardScenarioMessage"
+      required:
+        - message
 
     ScenarioResponseMessage:
       type: object
