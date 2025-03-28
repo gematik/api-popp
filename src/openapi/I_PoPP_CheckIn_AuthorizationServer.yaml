@@ -1,0 +1,659 @@
+openapi: 3.1.0
+info:
+  title: PoPP-Service Authorization Server
+  description: |
+    This interface provides access to PoPP-Service Authorization Server.
+    Via this interface, client systems (PoPP-Modul) can carry out user
+    authentication with the eHealth-ID using the insured person's device
+    through the health insurance company's sectoral IDP.
+    The PoPP-Module receives an eHealth-ID-checked access token for access to the
+    PoPP-Service (Resource Server).
+
+    This interface also describe user authentication via the insurer's
+    eHealth-Card during a mobile check-in (possibly via a smartphone). 
+    The PoPP-Module receives an card-checked access token for access to the
+    PoPP-Service (Resource Server).
+
+    **General conditions**:</br> 
+    For all operations if applicable:
+    - error responses may be extended by helpful information about the error
+    condition in _errorDetail_
+
+    **Prerequisites**:</br>
+    For using eHealth-ID
+    - The sectoral IDP of health insurance is registered with the TI-Federation.
+    - The PoPP-Service Authorization Server is registered with the TI-Federation.
+    - The PoPP-Module is registered with PoPP-Service Authorization Server.
+
+    For using electronic Health Card
+    - The PoPP-Module is registered with PoPP-Service Authorization Server 
+    - The PoPP-Module can read public data from eHealth-Card
+    
+    **Retry interval**:</br>
+    The following retry intervals are suggested in case of an error response:<br>
+    - '500' Internal Error
+      - approx. 10 minutes
+
+  contact:
+    name: gematik GmbH
+    url: 'https://www.gematik.de'
+
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+  version: 1.0.0
+
+  # version history:
+  # ----------------
+  # version 0.0.1
+  #   - initial version for review
+  # version 1.0.0
+  #   - first version for publication
+
+servers:
+- url: https://popp-service.de
+
+tags:
+- name: Authorization Health-ID
+  description: |
+    The insured person uses a device to authenticate himself to the health
+    insurance company's sectoral IDP (GesundheitsID).
+    The PoPP-Service Authorization Server must know the address of the IDP
+    (iss-idp) with which the insured person is registered. 
+    For this reason, it is possible to view a list of registered IDPs
+    (insurance companies) on PoPP-Modul.
+    If the PoPP-Service Authorization Server does not know the IDP address of
+    the calling PoPP-Modul, the insured person SHALL select their health
+    insurance company in the PoPP-Modul.
+
+    Authenticating a user against the IDP is a task of the authenticator
+    belonging to the IDP on the insured person’s device. 
+
+    A successful login provides an PoPP-Module access token and causes an
+    authorized user allowing access to the protected resource (PoPP-Service)
+    to get a TAN-Set.
+
+- name: Authorization eHealth-Card
+  description: |
+    The insured person uses his eHealth-Card for validation.
+    The PoPP-Service Authorization Server generate an card-communication
+    access token.
+    PoPP-Module use card-communication access token for communication with
+    PoPP-Service to read data from eHealth-Card.
+    
+    A successful evaluation of eHealth-Card data provides a TAN-Set.    
+
+externalDocs:
+  description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_Modul'
+  url: https://gemspec.gematik.de/docs/gemSpec/
+
+paths:
+  /popp/patient/api/auth/v1/authorization-request-healthid:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    post:
+      tags:
+        - Authorization Health-ID
+      operationId: sendAuthorizationRequestGid
+      summary: Send authorization request for authentication with eHealth-ID
+      description: | 
+        Sends an authorization request to the authorization service for
+        authentication with eHealth-ID.
+       
+        **Client**:</br>
+        A registered PoPP-Module SHALL send an OAuth-compliant request to the
+        PoPP-Service Authorization Server.
+        To defend against attacks, the PoPP-Module SHALL use pkce
+        (Proof Key for Code Exchange). 
+        The code challenge method (code_challenge_method) SHALL be “S256”.
+        The response type (response_type) SHALL be "code".<br/>
+       
+        **Provider**:</br>
+        The PoPP-Service Authorization Server SHALL send a pushed authorization
+        request (PAR) to the IDP
+        (see: gemSpec_IDP_Sek, table "Parameter Pushed Authorization Request").
+        To defend against attacks, the PoPP-Service Authorization Server SHALL
+        use pkce (Proof Key for Code Exchange) too. 
+        The code challenge method (code_challenge_method) SHALL be “S256”.
+        The response type (response_type) SHALL be "code".
+        It is necessary to generate and propagate a "nonce" parameter.
+        The acr-value in the PAR SHALL be "gematik-ehealth-loa-high", the
+        scope parameter used in the PAR SHALL be "urn:telematik:versicherter".  
+
+        The authorization server state value and clientid used for the PAR SHALL
+        occur in the URI-PAR response of the IDP.
+        After successful authentication PoPP-Service Authorization Server
+        creates an authorization code for the calling PoPP-Modul.
+
+        | Conditions                    | Status code | Error code       | Remarks                                                         |
+        |-------------------------------|-------------|------------------|-----------------------------------------------------------------|
+        | Successful operation          | 200         | successful       |                                                                 |
+        | Request does not match schema | 400         | malformedRequest |                                                                 |
+        | clientid value mismatch       | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value    |
+        | Invalid URI (idp-iss)         | 404         | noResource       | uri for idp do not exist or ist not registered on TI-Federation |
+        | Any other error               | 500         | internalError    |                                                                 |
+ 
+
+      requestBody:
+        description: |
+          Authorization Request is an OAuth compliant request using
+          Proof Key for Code Exchange by OAuth Public Clients
+          (see https://datatracker.ietf.org/doc/html/rfc763).
+        required: true
+        content:
+          application/json:
+           schema:
+             $ref: '#/components/schemas/AuthorizationRequestGidSchema'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthorizationResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+  /popp/patient/api/auth/v1/authorization-request-ehc:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    post:
+      tags:
+        - Authorization eHealth-Card
+      operationId: sendAuthorizationRequestEHC
+      summary: Send authorization request for authentication with eHealth-Card
+      description: | 
+        Sends an authorization request to the authorization service with
+        information from eHealth-Card of the insured person.
+        
+        **Client**:</br>
+        A registered PoPP-Module SHALL send an OAuth-compliant request to the
+        PoPP-Service Authorization Server.
+        To defend against attacks, the PoPP-Module SHALL use pkce
+        (Proof Key for Code Exchange). 
+        The code challenge method (code_challenge_method) SHALL be “S256”.
+        The response type (response_type) SHALL be "code".<br/>
+       
+        **Provider**:</br>
+        The PoPP-Service Authorization Server creates an access token
+        (card-communication access token).
+        The card-communication access token is signed with a key which was
+        published in entity statement of PoPP-Service Authorization Server.
+        The PoPP-Module uses the card-communication access token to get access
+        to the PoPP-Service for creating a direct communication channel 
+        between eHealth-Card and PoPP-Service.
+        
+        After creating a card-communication access token the
+        PoPP-Service Authorization Server creates an authorization code
+        for the calling PoPP-Modul.  
+        
+        | Conditions                    | Status code | Error code       | Remarks                                                      |
+        |-------------------------------|-------------|------------------|--------------------------------------------------------------|
+        | Successful operation          | 200         | successful       |                                                              |
+        | Request does not match schema | 400         | malformedRequest |                                                              |
+        | clientid value mismatch       | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value |
+        | Any other error               | 500         | internalError    |                                                              |
+
+
+      requestBody:
+        description: |
+          Authorization Request is an OAuth complaint request using
+          Proof Key for Code Exchange by OAuth Public Clients
+          (see https://datatracker.ietf.org/doc/html/rfc763).
+        required: true
+        content:
+          application/json:
+           schema:
+             $ref: '#/components/schemas/AuthorizationRequestEHCSchema'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthorizationResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+  /popp/patient/api/token/v1/token-request-healthid:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    post:
+      tags:
+        - Authorization Health-ID
+      operationId: sendAuthCodeHealthId
+      summary: Send token request to obtain an healthId-checked access token from PoPP-Service Authorization Server
+      description: | 
+        Sends a token request to the PoPP-Service Authorization Server.
+
+        **Client**:</br>
+        A registered PoPP-Module SHALL send token request to the
+        PoPP-Service Authorization Server to get an access token.
+        The parameter grand type (grant_type) SHALL be "authorization_code". <br/>
+
+        **Provider**:</br>
+        The PoPP-Service Authorization Server checks the authorization code and
+        the code verifier.
+        Depending on the authorization code the PoPP-Service Authorization Server
+        sends a PoPP-Module access token to the PoPP-Modul.
+
+        | Conditions                                               | Status code | Error code       | Remarks                                                                           |
+        |----------------------------------------------------------|-------------|------------------|-----------------------------------------------------------------------------------|
+        | Successful operation                                     | 200         | successful       |                                                                                   |
+        | Request does not match schema                            | 400         | malformedRequest |                                                                                   |
+        | mismatch authorization code or code verifier or clientId | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value or pkce proof failed |
+        | Any other error                                          | 500         | internalError    |                                                                                   |
+
+      requestBody:
+        description: |
+          Token Request is an OAuth complaint request using Proof Key for
+          Code Exchange by OAuth Public Clients
+          (see https://datatracker.ietf.org/doc/html/rfc763).
+        required: true
+        content:
+          application/json:
+           schema:
+             $ref: '#/components/schemas/TokenRequestHealthIdSchema'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponseHealthId200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+  /popp/patient/api/token/v1/token-request-ehc:
+    parameters:
+      - $ref: '#/components/parameters/useragent'
+    post:
+      tags:
+        - Authorization eHealth-Card
+      operationId: sendAuthCodeEHC
+      summary: Send token request to obtain an card-checked access token from PoPP-Service Authorization Server
+      description: | 
+        Sends an token request to the PoPP-Service Authorization Server.
+       
+        **Client**:</br>
+        A registered PoPP-Module SHALL send token request to the
+        PoPP-Service Authorization Server to get an access token.
+        The parameter grand type (grant_type) SHALL be "authorization_code". <br/>
+       
+        **Provider**:</br>
+        The PoPP-Service Authorization Server checks the authorization code
+        and the code verifier.
+        Depending on the authorization code the PoPP-Service Authorization Server
+        sends a card-communication access token or a PoPP-Module access token to
+        the PoPP-Modul.
+      
+        | Conditions                                              | Status code | Error code       | Remarks                                                                           |
+        |---------------------------------------------------------|-------------|------------------|-----------------------------------------------------------------------------------|
+        | Successful operation                                    | 200         | successful       |                                                                                   |
+        | Request does not match schema                           | 400         | malformedRequest |                                                                                   |
+        | mismatch authorizationcode or code verifier or clientId | 403         | invalData        | PoPP-Service Authorization Server didn't know clientid value or pkce proof failed |
+        | Any other error                                         | 500         | internalError    |                                                                                   |
+
+      requestBody:
+        description: |
+          Token Request is an OAuth complaint request using Proof Key for
+          Code Exchange by OAuth Public Clients
+          (see https://datatracker.ietf.org/doc/html/rfc763).
+        required: true
+        content:
+          application/json:
+           schema:
+             $ref: '#/components/schemas/TokenRequestEHCSchema'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponseEHC200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+components:
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        $ref: '#/components/schemas/UserAgentSchema'
+
+  responses:
+    AuthorizationResponse200:
+      description: HttpStatus.OK (200)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthorizationResponse200Schema'
+
+    TokenResponseHealthId200:
+      description: |
+        A JSON Web Token (JWT), healthId-checked access token for access to the
+        PoPP-Service, with the following format according to RFC-7515:</br>
+        base64url (protected_header) + '.' + base64url (payload) + '.' + base64url (signature)"</br>
+        Content for device attestation:</br>
+        - protected_header contains:
+          - "typ": "JWT"
+          - "alg": "ES256" 
+        - payload claims:
+          - "iat": issued at timestamp
+          - "exp": expiry timestamp (always iat + 120 min)
+          - "idNummer": KVNR
+          - "organizationID": IK-Nummer
+          - "telematikId": Telematik-ID of an eHealth institution
+          - "poppfdv": Information about registered PoPP-Modul
+          - "shortTan": false (default), set to true when short TAN needed 
+        - signature contains token signature
+      content:
+        application/jwt:
+          schema:
+            $ref: '#/components/schemas/TokenResponseHealthId200Schema'
+          example:
+            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJhY3RvcklkIjoiQTEyMzQ1Njc4OSIsICJpYXQiOjE3MzY4OTkyMDAsImV4cCI6MTczNjkwNjQwMH0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
+
+    TokenResponseEHC200:
+      description: |
+        A JSON Web Token (JWT), card-checked access token for access to the
+        PoPP-Service, with the following format according to RFC-7515:</br>
+        base64url (protected_header) + '.' + base64url (payload) + '.' + base64url (signature)"</br>
+        Content for device attestation:</br>
+        - protected_header contains:
+          - "typ": "JWT"
+          - "alg": "ES256" 
+        - payload claims:
+          - "iat": issued at timestamp
+          - "exp": expiry timestamp (always iat + 120 min)
+          - "telematikId": Telematik-ID of an eHealth institution
+          - "poppmodul": Information about registered PoPP-Modul
+          - "shortTan": false (default), set to true when short TAN needed 
+        - signature contains token signature
+      content:
+        application/jwt:
+          schema:
+            $ref: '#/components/schemas/TokenResponseEHC200Schema'
+          example:
+            - eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsIng1YyI6ImNlcnRpZmljYXRlIGMuZmQuc2lnIn0.eyJhY3RvcklkIjoiQTEyMzQ1Njc4OSIsICJpYXQiOjE3MzY4OTkyMDAsImV4cCI6MTczNjkwNjQwMH0.e3NpZ25hdHVyZU92ZXJIZWFkZXJBbmRQYXlsb2FkfQ
+
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error401UnauthorizedError:
+      description: HttpStatus.Unauthorized (401)
+      content:
+        application/json:
+          example:
+            errorCode: unauthorized
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error403Forbidden:
+      description: HttpStatus.FORBIDDEN (403)
+      content:
+        application/json:
+          example:
+            errorCode: invalAuth
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error404NotFound:
+      description: HttpStatus.NOT_FOUND (404)
+      content:
+        application/json:
+          example:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error409Conflict:
+      description:  HttpStatus.CONFLICT (409).
+      content:
+        application/json:
+          example:
+            errorCode: statusMismatch
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error500InternalError:
+      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+  schemas:
+    UserAgentSchema:
+      description: |
+        Information about client software with:
+        ClientId(20 characters) + / + VersionNumber (1 to 15 characters).
+      type: string
+      pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
+      examples: ["CLIENTID1234567890AB/2.1.12-45"]
+
+    AuthorizationRequestGidSchema:
+      description: |
+        PoPP-Module sends an oauth-complaint authorization request with pkce
+      type: object
+      properties:
+        issidp:
+          description: |
+            The issuer identifier (URL) of the IDP used for user authentication
+          type: string
+          examples: ["https://idp_kk.de"]
+        clientId:
+          description: |
+            Identifier of the application registered on
+            PoPP-Service Authorization Server
+          type: string
+          examples: ["myApplicationPoPPFdV"]
+        state:
+          description: |
+            Necessary security parameter, see
+            https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
+          type: string
+          examples: ["myPoPPFdVGeneratedState"]
+        redirect_uri:
+          description: |
+            Destination URL for the authorization code.
+            The application needs to send the authorization code to the
+            PoPP-Service Authorization Server.
+            The PoPP-Service Authorization Server exchanges the authorization
+            code to an access token.
+          type: string
+          examples: ["https://myApplication.de"]
+        code_challenge:
+          description: |
+            see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+          type: string
+          examples: ["K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"]
+        code_challenge_method:
+          description: |
+            see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
+          type: string
+          examples: ["S256"]
+        response_type:
+          description: |
+            PoPP-Module will get an authorization code, and will exchange this
+            code for an access token.
+          type: string
+          examples: ["code"]
+        telematikId:
+          description: |
+            PoPP-Module indicates the request for a LEI-specific TAN by including this optional parameter in the Request. If this parameter is absent in the request, only long TAN without LEI specificity are requested.
+          type: string
+          examples: ["1234567890"]
+
+    AuthorizationResponse200Schema:
+      description: |
+        Authorization code issued by the PoPP-Service Authorization Server
+      type: object
+      properties:
+        code:
+          description: authorization code
+          type: string
+          examples: ["authorization code<number>"]
+        state:
+          description: |
+            The status SHALL be exactly the same as what the PoPP-Module sent in
+            the authorization request
+            (see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9)
+          type: string
+          examples: ["myPoPPFdVGeneratedState"]
+
+    AuthorizationRequestEHCSchema:
+      description: |
+        PoPP-Module sends an oauth-complaint authorization request with pkce
+      type: object
+      properties:
+        cvcehc:
+          description: cvc read from eHealth-Card of the insurend person
+          type: string
+        cauthehc:
+          description: c.aut read from eHealth-Card of the insurend person
+          type: string
+        clientId:
+          description: |
+            Identifier of the application registered on
+            PoPP-Service Authorization Server
+          type: string
+          examples: ["myApplicationPoPPFdV"]
+        state:
+          description: |
+            Necessary security parameter,
+            see https://datatracker.ietf.org/doc/html/rfc8252#section-8.9
+          type: string
+          examples: ["myPoPPFdVGeneratedState"]
+        redirect_uri:
+          description: |
+            Destination URL for the authorization code.
+            The authorization code is used to redeem against an access token
+            used in the PoPP-Service Authorization Server.
+          type: string
+          examples: ["https://myApplication.de"]
+        code_challenge:
+          description: |
+            see https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
+          type: string
+          examples: ["K2-mvd94bdd5i1d0x7FTD_sFNRK4cxx-vDIbpfL2u9W"]
+        code_challenge_method:
+          description: |
+            see https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
+          type: string
+          examples: ["S256"]
+        response_type:
+          description: |
+            PoPP-Module will get an authorization code, and will
+            exchange this code against an access token.
+          type: string
+          examples: ["code"]
+        telematikId:
+          description: |
+            PoPP-Module indicates the request for a LEI-specific TAN by including this optional parameter in the Request. If this parameter is absent in the request, only long TAN without LEI specificity are requested.
+          type: string
+          examples: ["1234567890"]
+
+    TokenRequestHealthIdSchema:
+      description: |
+        PoPP-Module sends an oauth-complaint token request with pkce
+      type: object
+      properties:
+        grant_type:
+          description: grant type
+          type: string
+          examples: ["authorization_code"]
+        code:
+          description: authorization code
+          type: string
+          examples: ["autorization code<number>"]
+        code_verifier:
+          description: |
+            pkce code verifier
+            (see https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)
+          type: string
+        clientId:
+          description: |
+            Identifier of the application registered on
+            PoPP-Service Authorization Server
+          type: string
+          examples: ["myApplicationPoPPFdV"]
+        redirect_uri:
+          description: Destination URL for the access token.
+          type: string
+          examples: ["https://myApplication.de"]
+
+    TokenResponseHealthId200Schema:
+      type: object
+      properties:
+        jwt:
+          type: string
+          format: application/jwt
+          pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
+
+    TokenRequestEHCSchema:
+      description: PoPP-Module sends an oauth-complaint token request with pkce
+      type: object
+      properties:
+        grant_type:
+          description: grant type
+          type: string
+          examples: [authorization_code]
+        code:
+          description: authorization code
+          type: string
+          examples: ["cardcommunication_autorizationcode<number>"]
+        code_verifier:
+          description: |
+            pkce code verifier
+            (see https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)
+          type: string
+        clientId:
+          description: |
+            Identifier of the application registered on
+            PoPP-Service Authorization Server
+          type: string
+          examples: ["myApplicationPoPPFdV"]
+        redirect_uri:
+          description: Destination URL for the access token.
+          type: string
+          examples: ["https://myApplication.de"]
+
+    TokenResponseEHC200Schema:
+      type: object
+      properties:
+        jwt:
+          type: string
+          format: application/jwt
+          pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
+
+    ErrorSchema:
+      description: Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode

@@ -26,7 +26,7 @@ See [ReleaseNotes.md](./ReleaseNotes.md) for all information regarding the
 See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
 
 ## Folder Structure
-
+This project has the following folders:
 
 | Folder | Subfolder | Content                                                |
 |:-------|-----------|--------------------------------------------------------|
@@ -37,7 +37,6 @@ See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
 If you want to contribute, please check our [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
-
 Copyright 2024 gematik GmbH
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
