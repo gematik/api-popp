@@ -162,7 +162,7 @@ components:
           description: |
             An integer in range [0, 32767] indicating the time span in
             milliseconds for the PoPP-Service between receiving a
-            "ScenarioResultMessage" till the (expected) send time of the next
+            "ScenarioResponseMessage" till the (expected) send time of the next
             "StandardScenarioMessage" or "ConnectorScenarioMessage".
             A Connector or client uses this information to detect a timeout.
             The special value "timeSpan=0" indicates that this is the last
@@ -182,6 +182,10 @@ components:
 
     ScenarioStep:
       type: object
+      title: "Single command to be executed by an eHC"
+      description: |
+        Encapsulates a single command APDU to be executed by an electronic
+        Health-Card (eHC) including the expected status words.
       properties:
         commandApdu:
           type: string
@@ -202,9 +206,60 @@ components:
 
     ConnectorScenarioMessage:
       type: object
-      title: "Encapsulates 'StandardScenarioMessage', forwarded to a Connector"
+      title: "Encapsulates a signed StandardScenarioMessage to be sent to a connector"
       description: |
-        JWT according to RFC 7519 with a StandardScenarioMessage as payload
+        Sent by the server to the client to execute one or more
+        command APDUs by an electronic Health-Card (eHC) via a connector.
+        The scenarios are signed by the PoPP-Service using JWT according to
+        RFC 7519 so that the connector can verify the integrity and authenticity
+        of the message.
+
+        1. PoPP-Service creates a `StandardScenarioMessage` as it would do in
+        regular communication with an eHC (without a connector).
+        2. PoPP-Service signs the `StandardScenarioMessage` using JWT. The
+        JWT headers and claims are defined in `SignedScenarioHeaders` and
+        `SignedScenarioClaims` schemas respectively.
+        3. PoPP-Service encapsulates the signed `StandardScenarioMessage` in a
+        `ConnectorScenarioMessage` and sends it to the client.
+        4. The client receives the `ConnectorScenarioMessage`, retrieves the JWT
+        containing the signed `StandardScenarioMessage` and forwards it to the connector.
+        
+        Sample `ConnectorScenarioMessage`:
+        ```json
+        {
+          "type": "ConnectorScenario",
+          "version": "1.0.0",
+          "signedScenario": "eyAB.cdEF.ghIJ"
+        }
+        ```
+        
+        Sample content of the signed `StandardScenarioMessage` (header, claims, signature):
+        ```json
+        {
+          "typ": "JWT"
+          "alg": "ES256"
+          "x5c": ["MII..."]
+          "stpl": "MII..."
+        }
+        .
+        {
+          "message": {
+            "type": "StandardScenario",
+            "version": "1.0.0",
+            "clientSessionId": "123e4567-e89b-12d3-a456-426614174000",
+            "sequenceCounter": 1,
+            "timeSpan": 1000,
+            "steps": [
+              {
+                "commandApdu": "00a4040c",
+                "expectedStatusWords": ["9000", "6f00"]
+              }
+            ]
+          }
+        }
+        .
+        signature
+        ```
       properties:
         type:
           type: string
@@ -230,11 +285,12 @@ components:
         - version
         - signedScenario
 
-    ConnectorScenarioHeaders:
+    SignedScenarioHeaders:
       type: object
-      title: "Connector Scenario Headers"
+      title: "Signed Scenario JWT Headers"
       description: |
-        Schema for the headers of a ConnectorScenarioMessage.
+        The scenarios are signed by the PoPP-Service using JWT. This schema defines
+        the headers of such JWTss
       properties:
         typ:
           type: string
@@ -254,10 +310,28 @@ components:
               End entity X.509 certificate with the signature verification key.
               Certificates are encoded in DER and base64 encoded as described in
               https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
+        stpl:
+          type: string
+          description: |
+            This is a base64 encoded representation of the OCSP response to the
+            end entity X.509 certificate in x5c.
       required:
         - typ
         - alg
         - x5c
+        - stpl
+
+    SignedScenarioClaims:
+      type: object
+      title: "Signed Scenario Claims"
+      description: |
+        The scenarios are signed by the PoPP-Service using JWT. This schema defines
+        the claims of such JWTs.
+      properties:
+        message:
+          - $ref: "#/components/schemas/StandardScenarioMessage"
+      required:
+        - message
 
     ScenarioResponseMessage:
       type: object
@@ -312,7 +386,7 @@ components:
 
     TokenMessage:
       type: object
-      title: "Token"
+      title: "Final message containing the PoPP token"
       description: Sent by the server to provide the client with a PoPP token.
       properties:
         type:
@@ -322,18 +396,14 @@ components:
         token:
           type: string
           description: "PoPP token as JWT compact serialization."
-        pn:
-          type: string
-          description: "Prüfnachweis"
       required:
         - type
         - token
-        - pn
 
     # PoPP Token Headers
     TokenHeaders:
       type: object
-      title: "PoPP Token Headers"
+      title: "PoPP Token JWT Headers"
       description: | 
         Schema for the headers of a PoPP token as contained in the JWT.
       properties:
@@ -354,30 +424,19 @@ components:
             The key identifier of the key used to sign the token. 
             Key itself can be retrieved from the JWK endpoint of the PoPP
             server.
-        x5c:
-          type: array
-          items:
-            type: string
-            description: |
-              The X.509 certificate chain used to sign the token.
-              The first element is the certificate that was used to sign the token.
-              Certificates are encoded in DER and base64 encoded as described in
-              https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
       required:
         - typ
         - alg
         - kid
-        - x5c
       examples:
         - typ: "vnd.telematik.popp+jwt"
           alg: "ES256"
           kid: "x_vW4LVDipvu8iUQ5alKsZLWtH6jh4eJ4c5offXtMV0"
-          x5c: [ "MIIBI..." ]
 
     # PoPP Token Claims
     TokenClaims:
       type: object
-      title: "PoPP Token Claims"
+      title: "PoPP Token JWT Claims"
       description: | 
         Schema for the claims of a PoPP token contained as payload in a JWT.
       properties:
@@ -508,7 +567,34 @@ components:
         tan:
           description: short TAN or long TAN
           type: string
-          examples: "123456"
+          examples: 
+            - "123456"
+    
+    TokenResponse:
+      type: object
+      title: "Response containing the PoPP token"
+      description: Sent by the server to provide the client with a PoPP token.
+      properties:
+        token:
+          type: string
+          description: "PoPP token as JWT compact serialization."
+      required:
+        - token
+
+    ErrorSchema:
+      description: |
+        Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: |
+            Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode
 
   securitySchemes:
     oauth2Profiles:
@@ -522,12 +608,13 @@ components:
 
 
   responses:
+
     TokenResponse200:
       description: HttpStatus.OK (200)
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/TokenMessage'
+            $ref: '#/components/schemas/TokenResponse'
 
     Error400BadRequest:
       description: HttpStatus.BAD_REQUEST (400)
@@ -536,7 +623,7 @@ components:
           example:
             errorCode: malformedRequest
           schema:
-            $ref: '#/components/schemas/ErrorMessage'
+            $ref: '#/components/schemas/ErrorSchema'
 
     Error403Forbidden:
       description: HttpStatus.FORBIDDEN (403)
@@ -545,7 +632,7 @@ components:
           example:
             errorCode: invalAuth
           schema:
-            $ref: '#/components/schemas/ErrorMessage'
+            $ref: '#/components/schemas/ErrorSchema'
 
     Error404NotFound:
       description: HttpStatus.NOT_FOUND (404)
@@ -554,7 +641,7 @@ components:
           example:
             errorCode: noResource
           schema:
-            $ref: '#/components/schemas/ErrorMessage'
+            $ref: '#/components/schemas/ErrorSchema'
     Error500InternalError:
       description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
       content:
@@ -562,4 +649,4 @@ components:
           example:
             errorCode: internalError
           schema:
-            $ref: '#/components/schemas/ErrorMessage'
+            $ref: '#/components/schemas/ErrorSchema'
