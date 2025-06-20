@@ -148,8 +148,10 @@ components:
             The value is taken from "StartMessage.clientSessionId".
         sequenceCounter:
           type: integer
+          minimum: 0
+          maximum: 32767
           description: |
-            An integer in range [0, 32767] preventing replay attacks within a
+            An integer preventing replay attacks within a
             sequence of "ConnectorScenarioMessage" i.e., a group of more than one
             "ConnectorScenarioMessage" where all included "StandardScenarioMessage"
             share the same "clientSessionId". The first "StandardScenarioMessage"
@@ -158,9 +160,11 @@ components:
             incremented by one.
         timeSpan:
           type: integer
+          minimum: 0
+          maximum: 32767
           format: duration
           description: |
-            An integer in range [0, 32767] indicating the time span in
+            An integer indicating the time span in
             milliseconds for the PoPP-Service between receiving a
             "ScenarioResponseMessage" till the (expected) send time of the next
             "StandardScenarioMessage" or "ConnectorScenarioMessage".
@@ -567,9 +571,9 @@ components:
         tan:
           description: short TAN or long TAN
           type: string
-          examples: 
+          examples:
             - "123456"
-    
+
     TokenResponse:
       type: object
       title: "Response containing the PoPP token"
