@@ -88,7 +88,7 @@ components:
             
             * "contact-standard": contact based smartcard communication using
             ISO/IEC 7816-3 protocol T=1,
-            no connector is not involved in the communication with eHC
+            no connector is involved in the communication with eHC
             
             * "contact-connector": contact based smartcard communication using
             ISO/IEC 7816-3 protocol T=1,
@@ -96,7 +96,7 @@ components:
             
             * "contactless-standard": contactless smartcard communication using
             a protocol from ISO/IEC 14443 series,
-            no connector is not involved in the communication with eHC
+            no connector is involved in the communication with eHC
             
             * "contactless-connector": contactless smartcard communication using
             a protocol from ISO/IEC 14443 series,
@@ -176,6 +176,8 @@ components:
           description: List of steps in the scenario.
           items:
             $ref: "#/components/schemas/ScenarioStep"
+          minItems: 0
+          maxItems: 63
       required:
         - type
         - version
@@ -477,13 +479,13 @@ components:
             Proof by eHC via an arbitrary mobile app, the mobile app connects
             directly to the PoPP-service.
             
-            **ehc-...-trustedchannel-read-x509**:</br>
+            **ehc-...-trustedchannel**:</br>
             This is the preferred method of proof for an eHC G2.1, contact-based
             communication.
             The PoPP-service establishes a trusted channel to the eHC and uses
             that channel for (authentically) reading an X.509 certificate.
 
-            **ehc-...-cvc-authenticated-database-hash**:</br>
+            **ehc-...-cvc-authenticated**:</br>
             This is the only possibly proof method for an eHC G2.1, contactless
             communication.
             The PoPP-service authenticates the eHC and reads the X.509 certificate.
@@ -507,12 +509,12 @@ components:
             (card-holder) and a user of the eHC (deputy, agent, proxy).
           enum:
             - "healthid"
-            - "ehc-practitioner-trustedchannel-read-x509"
-            - "ehc-practitioner-cvc-authenticated-database-hash"
+            - "ehc-practitioner-trustedchannel"
+            - "ehc-practitioner-cvc-authenticated"
             - "ehc-practitioner-user-x509"
             - "ehc-practitioner-owner-x509"
-            - "ehc-provider-trustedchannel-read-x509"
-            - "ehc-provider-cvc-authenticated-database-hash"
+            - "ehc-provider-trustedchannel"
+            - "ehc-provider-cvc-authenticated"
             - "ehc-provider-user-x509"
             - "ehc-provider-owner-x509"
         patientProofTime:
@@ -554,7 +556,7 @@ components:
         - version: "1.0.0"
           iss: "https://popp.example.com"
           iat: 1722593256
-          proofMethod: "ehc-practitioner-trustedchannel-read-x509"
+          proofMethod: "ehc-practitioner-trustedchannel"
           patientProofTime: 1722593255
           patientId: "X123456789"
           insurerId: "123456789"
