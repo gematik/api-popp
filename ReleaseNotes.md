@@ -12,12 +12,11 @@
 </details>
 
 ## Release 3.0.0
-This release describes three interfaces:
-1. I_PoPP_CheckIn_AuthorizationServer.yaml
-2. I_PoPP_CheckIn_ResourceServer.yaml
-3. I_PoPP_Token_Generation.yaml
+This release changes the interface "I_PoPP_Token_Generation.yaml".
+Apart from some editorial and minor technical improvements 
+"TAN-handling" was removed from that interface (step 1).
 
-This release corresponds to the first version of gemSpec_PoPP_Service.
+This release corresponds to the first version of gemSpec_PoPP_Service (step 1).
 
 ## Release 2.0.0
 This release describes the following interface which substitutes the interface
