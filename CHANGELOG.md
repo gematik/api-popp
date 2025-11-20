@@ -26,16 +26,14 @@ The versioning policy of this project follows [Semantic Versioning v2.0.0][].
 
 ## Release 3.0.0
 Summary of changes in release 3.0.0 compared to 2.0.0:
-1. added:
-   1. interface "I_PoPP_CheckIn_AuthorizationServer.yaml"
-   2. interface "I_PoPP_CheckIn_ResourceServer.yaml"
-2. changed:
-   1. interface "I_PoPP_Token_Generation.yaml"
-3. removed
-   1. removed property "x5c" for object "TokenHeaders"
-      in interface "I_PoPP_Token_Generation.yaml"
-   2. removed property "pn" for object "TokenMessage"
-      in interface "I_PoPP_Token_Generation.yaml"
+1. changed:
+   1. interface "I_PoPP_Token_Generation.yaml", list of major changes:
+      1. add OSCP stapling to signed scenarios
+      2. add claims of signed scenarios
+      3. change names of enums in "TokenClaims"
+      4. removed TAN handling
+      5. removed property "pn" from "TokenMessage"
+      6. removed property "x5c" from "TokenHeader"
 
 ## Release 2.0.0
 Summary of changes in release 2.0.0 compared to 1.0.0:

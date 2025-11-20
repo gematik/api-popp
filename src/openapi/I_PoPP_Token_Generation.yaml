@@ -30,33 +30,6 @@ paths:
       security:
         - oauth2Profiles: [ "token:generate" ]
 
-  /popp/practitioner/api/v1/token-generation-tan:
-    post:
-      operationId: getPoPPToken
-      summary: Exchange a TAN for a PoPP Token.
-      description: | 
-        This endpoint allows the client to generate a PoPP token using a TAN.
-      requestBody:
-        required: true
-        content:
-          application/json:
-           schema:
-            $ref: '#/components/schemas/TokenTanRequest'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/TokenResponse200'
-        '400':
-          $ref: '#/components/responses/Error400BadRequest'
-        '403':
-          $ref: '#/components/responses/Error403Forbidden'
-        '404':
-          $ref: '#/components/responses/Error404NotFound'
-        '500':
-          $ref: '#/components/responses/Error500InternalError'
-
-      security:
-        - oauth2Profiles: [ "token:generate" ]
 
 components:
   schemas:
@@ -335,7 +308,7 @@ components:
         the claims of such JWTs.
       properties:
         message:
-          - $ref: "#/components/schemas/StandardScenarioMessage"
+          $ref: "#/components/schemas/StandardScenarioMessage"
       required:
         - message
 
@@ -562,46 +535,7 @@ components:
           insurerId: "123456789"
           actorId: "1-2012345678"
           actorProfessionOid: "1.2.276.0.76.4.50"
-
-    TokenTanRequest:
-      description: |
-        The short TAN or long TAN is the result of mobile check-in.
-        Authentication during mobile check-in is either based on
-        eHealth-ID (GesundheitsID) or of an eHealth-Card.
-      type: object
-      properties:
-        tan:
-          description: short TAN or long TAN
-          type: string
-          examples:
-            - "123456"
-
-    TokenResponse:
-      type: object
-      title: "Response containing the PoPP token"
-      description: Sent by the server to provide the client with a PoPP token.
-      properties:
-        token:
-          type: string
-          description: "PoPP token as JWT compact serialization."
-      required:
-        - token
-
-    ErrorSchema:
-      description: |
-        Error object with additional information about the occurred error
-      type: object
-      properties:
-        errorCode:
-          description: Error condition specifier
-          type: string
-        errorDetail:
-          description: |
-            Additional details regarding the error condition (if applicable)
-          type: string
-      required:
-        - errorCode
-
+          
   securitySchemes:
     oauth2Profiles:
       type: oauth2
@@ -613,46 +547,7 @@ components:
             token:generate: Generate PoPP tokens
 
 
-  responses:
 
-    TokenResponse200:
-      description: HttpStatus.OK (200)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/TokenResponse'
 
-    Error400BadRequest:
-      description: HttpStatus.BAD_REQUEST (400)
-      content:
-        application/json:
-          example:
-            errorCode: malformedRequest
-          schema:
-            $ref: '#/components/schemas/ErrorSchema'
 
-    Error403Forbidden:
-      description: HttpStatus.FORBIDDEN (403)
-      content:
-        application/json:
-          example:
-            errorCode: invalAuth
-          schema:
-            $ref: '#/components/schemas/ErrorSchema'
 
-    Error404NotFound:
-      description: HttpStatus.NOT_FOUND (404)
-      content:
-        application/json:
-          example:
-            errorCode: noResource
-          schema:
-            $ref: '#/components/schemas/ErrorSchema'
-    Error500InternalError:
-      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
-      content:
-        application/json:
-          example:
-            errorCode: internalError
-          schema:
-            $ref: '#/components/schemas/ErrorSchema'
