@@ -27,6 +27,10 @@ paths:
           description: Switching protocols to WebSocket
         '400':
           description: Bad request - unable to establish connection
+        '404':
+          description: Not found - requested service is not available
+        '426':
+          description: Upgrade Required - invalid Sec-WebSocket-Version
       security:
         - oauth2Profiles: [ "token:generate" ]
 
@@ -535,7 +539,7 @@ components:
           insurerId: "123456789"
           actorId: "1-2012345678"
           actorProfessionOid: "1.2.276.0.76.4.50"
-          
+
   securitySchemes:
     oauth2Profiles:
       type: oauth2
@@ -545,9 +549,3 @@ components:
           tokenUrl: https://auth.example.com/token
           scopes:
             token:generate: Generate PoPP tokens
-
-
-
-
-
-
