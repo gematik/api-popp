@@ -1,0 +1,214 @@
+openapi: 3.1.0
+info:
+  title: PoPP-Server
+  description: |
+    The ID of the PoPP record is part of the result information from the PoPP token creation triggered by the PoPP module. 
+    If the PoPP record could be created but a PoPP token could not yet be delivered to the LEI, the PoPP status is "pending". 
+    In this case, the PoPP module can request the status from the PoPP service at a later time via an HTTP GET request 
+    and inform the user accordingly.
+
+    Communication between the PoPP-Modul and the PoPP-Service does not occur directly. Zeta components are always used.
+    
+
+    **General conditions**:</br> 
+    For all operations if applicable:
+    - error responses may be extended by helpful information about the error condition in _errorDetail_
+
+    **Prerequisites**:</br>
+    - A PoPP record was created via check-in using health ID or health card verification.
+    - The ID of tehe PoPP data record was send to the PoPP module
+    
+    
+    
+    **Retry interval**:</br>
+    The following retry intervals are suggested in case of an error response:<br>
+    - '500' Internal Error
+      - approx. 10 minutes
+
+  contact:
+    name: gematik GmbH
+    url: 'https://www.gematik.de'
+
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+  version: 0.0.1
+
+  # version history:
+  # ----------------
+  # version 0.0.1
+  #   - initial version for review
+
+servers:
+- url: https://popp-service.de
+
+tags:
+- name: status popp
+  description: |
+    The insured person authenticated themselves for check-in using their health ID or by authenticating a health card. 
+    A PoPP data record was created in the PoPP service, but a PoPP token could not be delivered to the LEI. 
+    The PoPP module uses the ZETA components to query the PoPP service to determine if the delivery status has changed in the meantime. 
+    For this purpose, the PoPP module transmits the ID of the PoPP data record to the PoPP service.
+    The PoPP service then provides the PoPP module with the current check-in status.
+  
+externalDocs:
+  description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_Modul'
+  url: https://gemspec.gematik.de/docs/gemSpec/
+
+paths:
+  /popp/patient/api/practitioner/v1/status-popp-information:
+   get:
+      parameters:
+        - $ref: '#/components/parameters/useragent'
+        - $ref: '#/components/parameters/popprecordid'
+   
+      tags:
+        - status popp
+      operationId: readStatusPoPP
+      summary: Read the status of PoPP token generation to a popprecordid
+      description: |
+        The popprecordid identifies the PoPP record of the check-in process. 
+        The PoPP service reads the record and generates a response with the current status of the PoPP token generation.
+      
+      responses:
+        '200':
+          $ref: '#/components/responses/StatusPoppTokenGenerationResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '401':
+          $ref: '#/components/responses/Error401UnauthorizedError'  
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+      security: 
+        - bearerAuthClient: []
+   
+components:
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        $ref: '#/components/schemas/UserAgentSchema'
+
+    popprecordid:
+      name: popprecordid
+      in: query
+      description: poppRecordId identifies the PoPP data record of the check-in process
+      required: true
+      schema:
+        description: "Identifier of the Check-in PoPP data record"
+        type: string
+        examples: [237cc7b7-f85e-42c3-981c-ad7f9d97ddca]    
+
+  responses:
+    StatusPoppTokenGenerationResponse200:
+      description: |
+        HttpStatus.OK (200) and status information about PoPP-Token Generation Process
+        - success: - PoPP data record and PoPP-Token was generated and sent to health company
+        - pending: - PoPP data record was generated but not sent to health company yet, PoPP-Server is trying to send the PoPP-Token
+        - canceled: - The process for generating the PoPP token was aborted due to an error or because transmission 
+        to the healthcare company was not possible within 48 hours.
+        Additionally, in the "PoPP token generation status", a message with information (e.g., error information) is transmitted and 
+        the ID of PoPP data record.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StatusPoPPTokenGenerationSchema'
+   
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error401UnauthorizedError:
+      description: HttpStatus.Unauthorized (401)
+      content:
+        application/json:
+          example:
+            errorCode: unauthorized
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+    
+    Error403Forbidden:
+      description: HttpStatus.FORBIDDEN (403)
+      content:
+        application/json:
+          example:
+            errorCode: invalAuth
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+    
+    Error404NotFound:
+      description: HttpStatus.NOT_FOUND (404)
+      content:
+        application/json:
+          example:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+    
+    Error500InternalError:
+      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+  schemas:
+    UserAgentSchema:
+      description: "Information about client software with: ClientId(20 characters) + / + VersionNumber (1 to 15 characters)."
+      type: string
+      pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
+      examples: [CLIENTID1234567890AB/2.1.12-45]
+  
+    StatusPoPPTokenGenerationSchema:
+      description: The Popp service sends status information regarding Popp token generation.
+      type: object
+      properties:
+        state:
+          description: The status of PoPP token generation 
+          type: string
+          pattern: '(\b(success|pending|canceled)\b)'
+          examples: [success, pending, canceled]
+        message:
+          description: Message with informations about popp-token generation 
+          type: string
+          examples: ["Die Zustellung des PoPP-Token an Einrichtung war innerhalb von 48h nicht erfolgreich."]
+        id: 
+          description: The ID of PoPP data record 
+          type: string
+          examples: [237cc7b7-f85e-42c3-981c-ad7f9d97ddca]
+
+    ErrorSchema:
+      description: Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode
+
+  securitySchemes:
+    bearerAuthClient:
+      description: client Access-Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT      
