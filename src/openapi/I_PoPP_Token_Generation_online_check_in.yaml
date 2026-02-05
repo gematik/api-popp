@@ -1,0 +1,314 @@
+openapi: 3.1.0
+info:
+  title: PoPP Token Generation API healthcare practitioners software
+  version: 1.0.0
+  description: |
+    This interface provides access to PoPP Token Generation API to be used by 
+    healthcare practitioners software systems (Primärsysteme). It defines the
+    request and response exchanged between the client and the server to generate 
+    a PoPP token as part of an online check-in process. 
+
+paths:
+  /popp/practitioner/api/v1/token-generation-ckeck-in:
+    summary: Endpoint for PoPP Token Generation after online check-in process
+    description: |
+      This endpoint is used by the client to generate a PoPP token using a 
+      PoPP record created as part of an online check-in process.
+    get:
+      parameters:
+        - $ref: '#/components/parameters/useragent'
+        - $ref: '#/components/parameters/telematikid'
+      tags:
+        - Check-In
+      summary: |
+        Read PoPP data records and create PoPP-Token for all PoPP data records with status = pending
+      operationId: checkin
+      responses:
+        '200':
+          $ref: '#/components/responses/CheckInResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+      security:
+        - oauth2Profiles: [ "token:generate" ]      
+
+
+components:
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        $ref: '#/components/schemas/UserAgentSchema'
+    telematikid:
+      name: telematikid
+      in: query
+      description: Telematik-ID of a ehealth institution
+      required: true
+      schema:
+        $ref: '#/components/schemas/TelematikIDSchema'
+
+  responses:
+    CheckInResponse200:
+      description: |
+        todo.
+      headers:
+        X-WorkplaceID:
+          description: workplaceID for use in Healthcare practitioners software system
+          schema:
+            $ref: '#/components/schemas/WorkplaceIDSchema'
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              x-contentMediaType: application/jwt
+              x-contentSchema:
+                type: array
+                prefixItems:
+                  - $ref: '#/components/schemas/TokenHeadersSchema'
+                  - $ref: '#/components/schemas/TokenClaimsSchema'
+            
+
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    
+    Error403Forbidden:
+      description: HttpStatus.FORBIDDEN (403)
+      content:
+        application/json:
+          example:
+            errorCode: invalAuth
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+    
+    Error404NotFound:
+      description: HttpStatus.NOT_FOUND (404)
+      content:
+        application/json:
+          example:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    
+    Error500InternalError:
+      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+  schemas:   
+    UserAgentSchema:
+      description: "Information about client software with: ClientId(20 characters) + / + VersionNumber (1 to 15 characters)."
+      type: string
+      pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
+      examples: [CLIENTID1234567890AB/2.1.12-45]
+
+    TelematikIDSchema:
+      description: "Telematik-ID of a health company"
+      type: string
+      examples: [1-10000100001111]  
+
+    WorkplaceIDSchema:
+      description: "WorkplaceID of a health company."
+      type: string
+      pattern: '^[^\/:*?"<>|]{64}$'
+      examples: [Arbeitsplatz 1]
+
+    # PoPP Token Headers
+    TokenHeadersSchema:
+      type: object
+      title: "PoPP Token JWT Headers"
+      description: | 
+        Schema for the headers of a PoPP token as contained in the JWT.
+      properties:
+        typ:
+          type: string
+          const: "vnd.telematik.popp+jwt"
+          description: The type of the token.
+        alg:
+          type: string
+          description: | 
+            The algorithm used to sign the token. Currently only ES256 is 
+            supported.
+          enum:
+            - ES256
+        kid:
+          type: string
+          description: |
+            The key identifier of the key used to sign the token. 
+            Key itself can be retrieved from the JWK endpoint of the PoPP
+            server.
+      required:
+        - typ
+        - alg
+        - kid
+      examples:
+        - typ: "vnd.telematik.popp+jwt"
+          alg: "ES256"
+          kid: "x_vW4LVDipvu8iUQ5alKsZLWtH6jh4eJ4c5offXtMV0"
+
+    # PoPP Token Claims
+    TokenClaimsSchema:
+      type: object
+      title: "PoPP Token JWT Claims"
+      description: | 
+        Schema for the claims of a PoPP token contained as payload in a JWT.
+      properties:
+        version:
+          type: string
+          const: "1.0.0"
+          description: |
+            The version of the PoPP token format.
+            - version = "1.0.0": actual value of "version".
+        iss:
+          type: string
+          description: |
+            The issuer of the token. The value must be the URL of the
+            PoPP server without the path and without a trailing slash.
+        iat:
+          type: integer
+          description: |
+            The time the token was issued, interpreted as described in
+            https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
+        proofMethod:
+          type: string
+          description: |
+            The proof method used.
+            
+            **healthid**:</br>
+            "GesundheitsID via PoPP-Modul" i.e., health-ID provided by a
+            special mobile app.
+            
+            **ehc-practitioner-...**:</br>
+            Proof by eHC via a client, the client authenticates to the
+            PoPP-service by means of an institution ID (i.e., SM-B).
+            
+            **ehc-provider-...**:</br>
+            Proof by eHC via an arbitrary mobile app, the mobile app connects
+            directly to the PoPP-service.
+            
+            **ehc-...-trustedchannel**:</br>
+            This is the preferred method of proof for an eHC G2.1, contact-based
+            communication.
+            The PoPP-service establishes a trusted channel to the eHC and uses
+            that channel for (authentically) reading an X.509 certificate.
+
+            **ehc-...-cvc-authenticated**:</br>
+            This is the only possibly proof method for an eHC G2.1, contactless
+            communication.
+            The PoPP-service authenticates the eHC and reads the X.509 certificate.
+            Because reading the X.509 certificate here is non-authentic (from the
+            PoPP-service point of view), the PoPP-service uses a database to check
+            if the CV-certificate used for authenticating the eHC corresponds
+            to the presented X.509 certificate.
+            
+            **ehc-...-user-x509**:</br>
+            This is the preferred method of proof for an eHC G3.x, contactless
+            or contact-based (no eHC PIN involved).
+            The PoPP-service uses a challenge-response method where the private
+            key corresponding to the X.509 certificate signs the challenge and
+            that X.509 contains the information required for PoPP-token
+            generation.
+
+            **ehc-...-owner-x509**: (backlog, to-be-discussed)</br>
+            Same as **ehc-...-user-x509** but another identity from the eHC is
+            used where the user is requested to present a PIN.
+            This way it is possible to distinguish between the owner of the eHC
+            (card-holder) and a user of the eHC (deputy, agent, proxy).
+          enum:
+            - "healthid"
+            - "ehc-practitioner-trustedchannel"
+            - "ehc-practitioner-cvc-authenticated"
+            - "ehc-practitioner-user-x509"
+            - "ehc-practitioner-owner-x509"
+            - "ehc-provider-trustedchannel"
+            - "ehc-provider-cvc-authenticated"
+            - "ehc-provider-user-x509"
+            - "ehc-provider-owner-x509"
+        patientProofTime:
+          type: integer
+          description: |
+            The time the patient proof was performed, interpreted as described 
+            in https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6
+            
+            * For proof methods with eHC this is the time the eHC was used.
+            * For proof methods with eHealth-ID (GesundheitsID) this is the time
+            the identity was verified using OpenID Connect.
+        patientId:
+          type: string
+          description: |
+            The patient identifier (KVNR).
+        insurerId:
+          type: string
+          description: |
+            The insurer identifier (IKNR).
+        actorId:
+          type: string
+          description: |
+            The actor identifier (Telematik-ID).
+        actorProfessionOid:
+          type: string
+          description: |
+            Profession OID of the actor.
+      required:
+        - version
+        - iss
+        - iat
+        - proofMethod
+        - patientProofTime
+        - patientId
+        - insurerId
+        - actorId
+        - actorProfessionOid
+      examples:
+        - version: "1.0.0"
+          iss: "https://popp.example.com"
+          iat: 1722593256
+          proofMethod: "ehc-practitioner-trustedchannel"
+          patientProofTime: 1722593255
+          patientId: "X123456789"
+          insurerId: "123456789"
+          actorId: "1-2012345678"
+          actorProfessionOid: "1.2.276.0.76.4.50"      
+
+    ErrorSchema:
+      description: Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode
+          
+  securitySchemes:
+    oauth2Profiles:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.com/auth
+          tokenUrl: https://auth.example.com/token
+          scopes:
+            token:generate: Generate PoPP tokens

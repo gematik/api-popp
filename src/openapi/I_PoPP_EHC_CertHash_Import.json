@@ -1,0 +1,293 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PoPP-Service - API for importing entries",
+    "contact": {
+      "name": "Software development",
+      "url": "https://www.gematik.de",
+      "email": "software-development@gematik.de"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "0.0.2",
+    "summary": "API for importing entries into \"eGK-Hash-Datenbank\""
+  },
+  "servers": [
+    {
+      "url": "https://popp-service.dev.ti-dienste.de",
+      "description": "RU DEV"
+    },
+    {
+      "url": "https://popp-service.ref.ti-dienste.de",
+      "description": "RU"
+    },
+    {
+      "url": "https://popp-service.prod.ti-dienste.de",
+      "description": "PU"
+    }
+  ],
+  "paths": {
+    "/api/v1/hash-db/import": {
+      "post": {
+        "tags": [
+          "eGK HashDB Import"
+        ],
+        "summary": "Handles the uploading of signed eContent to PoPP-Service.",
+        "operationId": "uploadFile",
+        "requestBody": {
+          "description": "The eContent file in ASN.1 format.",
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadFileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No file, an empty or a corrupted file uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "File larger than 2GB uploaded"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          },
+          "507": {
+            "description": "Not enough storage space available!",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "mTLS": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hash-db/import/{jobId}/status": {
+      "get": {
+        "tags": [
+          "eGK HashDB Import"
+        ],
+        "summary": "Retrieves the status of an import job based on the given job ID.",
+        "operationId": "getStatus",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "The job id of the import job",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9A-Fa-f]{8}(?:\\-[0-9A-Fa-f]{4}){3}\\-[0-9A-Fa-f]{12}$"
+            },
+            "example": "e060a702-7734-4a97-a983-9201a44e2340"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportJobStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid import job id!",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Import job not found!",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "mTLS": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hash-db/import/{jobId}/result": {
+      "get": {
+        "tags": [
+          "eGK HashDB Import"
+        ],
+        "summary": "Downloads the result of a finished import job as an eContentResponse file in ASN.1 format.",
+        "operationId": "downloadJobResult",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "The job id of the import job",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9A-Fa-f]{8}(?:\\-[0-9A-Fa-f]{4}){3}\\-[0-9A-Fa-f]{12}$"
+            },
+            "example": "e060a702-7734-4a97-a983-9201a44e2340"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid import job id!",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Import job not found!",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "mTLS": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UploadFileResponse": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          }
+        }
+      },
+      "PoppProblemDetail": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "error": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        }
+      },
+      "ImportJobStatusResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED_FOR_RUNNING",
+              "RUNNING",
+              "FINISHED",
+              "FAILED"
+            ]
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "mTLS": {
+        "type": "mutualTLS",
+        "description": "mutual TLS via TI PKI client certificate and role 'oid_tsp-egk'"
+      }
+    }
+  }
+}
