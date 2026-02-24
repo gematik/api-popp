@@ -1,0 +1,250 @@
+openapi: 3.1.0
+info:
+  title: PoPP-Service
+  description: |
+    Authentication of an "eGK in remote healthcare" is performed by the PoPP service. 
+    This service generates APDU commands to read the eGK and sends them to the PoPP module. 
+    The PoPP module sends the APDU commands unchanged to the eGK and its response back to the PoPP service. 
+    The PoPP service then sends the next APDU commands.
+    This loop continues until all APDU commands have been processed by the eGK.
+    The PoPP service checks the result of the eGK query, creates a PoPP data record, 
+    and sends the PoPP module a status update regarding PoPP token generation as a final response.
+
+    Communication between the PoPP-Modul and the PoPP-Service does not occur directly. Zeta components are always used.
+
+    **General conditions**:</br> 
+    For all operations if applicable:
+    - error responses may be extended by helpful information about the error condition in _errorDetail_
+
+    **Prerequisites**:</br>
+    For insurant and representatives
+    - The popp-module client is registered on ZETA-Guard
+    - The popp ZETA-Guard authorization server has issued a client access token to the ZETA-SDK (PoPP-Modul App)
+    
+    
+    **Retry interval**:</br>
+    The following retry intervals are suggested in case of an error response:<br>
+    - '500' Internal Error
+      - approx. 10 minutes
+
+  contact:
+    name: gematik GmbH
+    url: 'https://www.gematik.de'
+
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+  version: 0.0.1
+
+  # version history:
+  # ----------------
+  # version 0.0.1
+  #   - initial version for review
+
+servers:
+- url: https://popp-service.de
+
+tags:
+- name: eHealth-Card communication
+  description: |
+   eHealth card communication describes the communication between the eHealth card and the PoPP service. 
+   Upon successful eHealth card communication, the PoPP service creates a PoPP record and sends status 
+   information to the PoPP module.
+  
+  
+externalDocs:
+  description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_Module'
+  url: https://gemspec.gematik.de/docs/gemSpec/
+
+paths:
+  /popp/service/v1/open-communication-ehc:
+   get:
+      parameters:
+        - $ref: '#/components/parameters/useragent'
+        - $ref: '#/components/parameters/telematikid'
+        - $ref: '#/components/parameters/workplaceid'
+        - $ref: '#/components/parameters/apduresponse'
+   
+      tags:
+        - eHealth-Card communication
+      operationId: openCommunicationEhc
+      summary: Depending on the parameter set PoPP service react with different Responses. 
+        Parameters telematikid and workplaceid are nesseccary for PoPP token generation.
+      description: |
+        If the GET request does not contain the parameter "apduresponse", the PoPP service sends APDU commands as a response.
+        When no further APDU commands are needed, the PoPP service sends status information for generating the Popp token.
+      
+      responses:
+        '200':
+          $ref: '#/components/responses/EGKVerificationResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+      security: 
+        - bearerAuthClient: []
+        
+
+components:
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        $ref: '#/components/schemas/UserAgentSchema'
+    telematikid:
+      name: telematikid
+      in: query
+      description: Telematik-ID of a ehealth institution
+      required: true
+      schema:
+        $ref: '#/components/schemas/TelematikIDSchema'
+    workplaceid:
+      name: workplaceid
+      in: query
+      description: WorkplaceID of a ehealth institution
+      schema:
+        $ref: '#/components/schemas/WorkplaceIDSchema'
+    apduresponse:
+      name: apduresponse
+      in: query
+      description: response from eGK of apdu command 
+      schema:
+        $ref: '#/components/schemas/APDUResponseSchema'    
+
+  responses:
+    EGKVerificationResponse200:
+      description: HttpStatus.OK (200)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EGKVerificationResponse200Schema'
+
+
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          examples:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorType'
+
+    Error403Forbidden:
+      description: HttpStatus.FORBIDDEN (403)
+      content:
+        application/json:
+          examples:
+            errorCode: invalAuth
+          schema:
+            $ref: '#/components/schemas/ErrorType'
+    
+    Error404NotFound:
+      description: HttpStatus.NOT_FOUND (404)
+      content:
+        application/json:
+          examples:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorType'
+
+    
+    Error500InternalError:
+      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          examples:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorType'
+
+  schemas:
+    UserAgentSchema:
+      description: "Information about client software with: ClientId(20 characters) + / + VersionNumber (1 to 15 characters)."
+      type: string
+      pattern: ^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$
+      examples: CLIENTID1234567890AB/2.1.12-45
+    
+    EGKVerificationResponse200Schema:
+      description: |
+       There ar two diffent kinds of the content of the response object. There is an apdu command and expecetd status words 
+       or the state of the token generation and an information message
+      type: object
+      properties:
+        commandApdu:
+          type: string
+          description: ISO/IEC 7816-4 command APDU as hexadecimal string.
+        expectedStatusWords:
+          type: array
+          description: |
+            List of expected status words in the corresponding response APDU
+            as hexadecimal strings.
+          items:
+            type: string
+        state:
+          description: The status of PoPP token generation 
+          type: string
+          pattern: '(\b(success|pending|canceled)\b)'
+          examples: [success, pending, canceled]
+        message:
+          description: Message with informations about popp-token generation 
+          type: string
+          examples: ["Die Zustellung des PoPP-Token an Einrichtung war innerhalb von 48h nicht erfolgreich."]  
+        id: 
+          description: The ID of PoPP data record 
+          type: string
+          examples: [237cc7b7-f85e-42c3-981c-ad7f9d97ddca]    
+      examples:
+        - commandApdu: "00a4040c"
+          expectedStatusWords: ["9000", "6f00"]
+        - state: "success"
+          message: "Check-in erfolgreich abgeschlossen" 
+          id: 237cc7b7-f85e-42c3-981c-ad7f9d97ddca  
+      required:
+        - commandApdu
+        - expectedStatusWords
+        
+
+    TelematikIDSchema:
+      description: "valid Telematik-ID."
+      type: string
+      examples: [1-10000100001111]
+
+    WorkplaceIDSchema:
+      description: "Information about a workplace at the healthcare company"
+      type: string
+      pattern: ^[^\/:*?"<>|]{1,64}$
+      examples: [Arbeitsplatz 1]
+
+    APDUResponseSchema:
+      description: The APDU Response is the answer from ehealth card to an apdu command from PoPP service
+      type: string
+      examples: ["11223344559000"]  
+       
+    ErrorType:
+      description: Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode
+
+  securitySchemes: 
+    bearerAuthClient:
+      description: client Access-Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    

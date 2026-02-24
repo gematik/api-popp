@@ -1,0 +1,193 @@
+openapi: 3.1.0
+info:
+  title: PoPP-Server
+  description: |
+    This interface is used to process a FHIR-VZD request to retrieve data on a healthcare company.
+    The query parameter of the request is a correctly formulated search query for the FHIR-VZD API.
+    The PoPP service is a registered FHIR-VZD client and sends this search query to FHIR-VZD.
+    The interface responds to the caller with the result of the search query.
+    
+    Communication between the PoPP-Modul and the PoPP-Srvice does not occur directly. Zeta components are always used
+    
+    **General conditions**:</br> 
+    For all operations if applicable:
+    - error responses may be extended by helpful information about the error condition in _errorDetail_
+
+    **Prerequisites**:</br>
+    For insurant and representatives
+    - The popp-module client is registered on ZETA-Guard
+    - The popp ZETA-Guard authorization server has issued a client access token to the ZETA-SDK (PoPP-Modul App)odo
+    
+    
+    **Retry interval**:</br>
+    The following retry intervals are suggested in case of an error response:<br>
+    - '500' Internal Error
+      - approx. 10 minutes
+
+  contact:
+    name: gematik GmbH
+    url: 'https://www.gematik.de'
+
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+  version: 0.0.1
+
+  # version history:
+  # ----------------
+  # version 0.0.1
+  #   - initial version for review
+
+servers:
+- url: https://popp-service.de
+
+tags:
+- name: health company informations
+  description: |
+   The information about a healthcare company is used to obtain user consent. 
+   Without this consent, the healthcare company cannot receive a PoPP token.
+
+  
+externalDocs:
+  description: 'Specification: gemSpec_PoPP_Service, gemSpec_PoPP_Modul'
+  url: https://gemspec.gematik.de/docs/gemSpec/
+
+paths:
+  /popp/patient/api/practitioner/v1/practitioner-information:
+   get:
+      parameters:
+        - $ref: '#/components/parameters/searchrequest'
+   
+      tags:
+        - health company informations
+      operationId: loadPractitionerInformation
+      summary: Load practitioner informations for a Telematik-ID for giving user constent 
+      description: FHIR-VZD request to retrieve data on a healthcare company.
+      
+      responses:
+        '200':
+          $ref: '#/components/responses/PractitionerInformationResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '401':
+          $ref: '#/components/responses/Error401UnauthorizedError'  
+        '403':
+          $ref: '#/components/responses/Error403Forbidden'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+      security: 
+        - bearerAuthClient: []
+   
+components:
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        $ref: '#/components/schemas/UserAgentSchema'
+
+    searchrequest:
+      name: searchrequest
+      in: query
+      description: FHIR-VZD request to retrieve data on a healthcare company
+      required: true
+      schema:
+        $ref: '#/components/schemas/SearchRequestSchema'    
+
+  responses:
+    PractitionerInformationResponse200:
+      description: HttpStatus.OK (200)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PractitionerInformationResponse200Schema'
+   
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error401UnauthorizedError:
+      description: HttpStatus.Unauthorized (401)
+      content:
+        application/json:
+          example:
+            errorCode: unauthorized
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+    
+    Error403Forbidden:
+      description: HttpStatus.FORBIDDEN (403)
+      content:
+        application/json:
+          example:
+            errorCode: invalAuth
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+    
+    Error404NotFound:
+      description: HttpStatus.NOT_FOUND (404)
+      content:
+        application/json:
+          example:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+    
+    Error500InternalError:
+      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+  schemas:
+    UserAgentSchema:
+      description: "Information about client software with: ClientId(20 characters) + / + VersionNumber (1 to 15 characters)."
+      type: string
+      pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
+      examples: [CLIENTID1234567890AB/2.1.12-45]
+
+    SearchRequestSchema:
+      description: "FHIR-VZD request to retrieve data on a healthcare company."
+      type: string  
+   
+    PractitionerInformationResponse200Schema:
+      description: Popp-Service sends information about a health company to PoPP-Modul
+      type: object
+      properties:
+        searchresult:
+          description: Search result of FHIR-VZD request
+          type: string
+
+    ErrorSchema:
+      description: Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode
+
+  securitySchemes:
+    bearerAuthClient:
+      description: client Access-Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT      
