@@ -28,17 +28,17 @@ See [CHANGELOG.md](./CHANGELOG.md) for information about changes.
 ## Folder Structure
 This project has the following folders:
 
-| Folder | Subfolder | Content                                                |
-|:-------|-----------|--------------------------------------------------------|
-| images |           | static image material for rendering Markdown documents |
-| src    | openapi   | API as [YAML][]-files with [OpenAPI][] content         | 
+| Folder | Subfolder | Content                                                    |
+|:-------|-----------|------------------------------------------------------------|
+| images |           | static image material for rendering Markdown documents     |
+| src    | openapi   | API as [JSON][] or [YAML][] files with [OpenAPI][] content | 
 
 ## Contributing
 If you want to contribute, please check our [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-Copyright 2025 gematik GmbH
+Copyright 2026 gematik GmbH
 
 Apache License, Version 2.0
 
@@ -54,6 +54,7 @@ See the [LICENSE](./LICENSE) for the specific language governing permissions and
 3. Gematik may remove published results temporarily or permanently from the place of publication at any time without prior notice or justification.
 4. Please note: Parts of this code may have been generated using AI-supported technology. Please take this into account, especially when troubleshooting, for security analyses and possible adjustments.
 
+[JSON]:https://www.json.org/json-en.html
 [OpenAPI]:https://www.openapis.org/
 [YAML]:https://yaml.org/
 [gemSpec_Pages]:https://gemspec.gematik.de/docs/gemSpec/

@@ -5,30 +5,42 @@
 <details>
   <summary>Table of Contents</summary>
   <ol>
+    <li><a href="#release-310">Release 3.1.0</a></li>
     <li><a href="#release-300">Release 3.0.0</a></li>
     <li><a href="#release-200">Release 2.0.0</a></li>
     <li><a href="#release-100">Release 1.0.0</a></li>
   </ol>
 </details>
 
+## Release 3.1.0
+
+Add interface
+[I_PoPP_EHC_CertHash_Import.json](src/openapi/I_PoPP_EHC_CertHash_Import.json)
+which describes messages for importing hash-values into PoPP-Service.
+
 ## Release 3.0.0
-This release changes the interface "I_PoPP_Token_Generation.yaml".
-Apart from some editorial and minor technical improvements 
+
+This release changes the interface
+[I_PoPP_Token_Generation.yaml](src/openapi/I_PoPP_Token_Generation.yaml).
+Apart from some editorial and minor technical improvements
 "TAN-handling" was removed from that interface (step 1).
 
 This release corresponds to the first version of gemSpec_PoPP_Service (step 1).
 
 ## Release 2.0.0
+
 This release describes the following interface which substitutes the interface
 from release 1.0.0:
 
-- "I_PoPP_Token_Generation.yaml"  
-   Interface from a PoPP-Client to a PoPP-Service,
-   this interface is used to create a PoPP-Token by the PoPP-Service and
-   transfer the PoPP-Token to the PoPP-Client.
+- [I_PoPP_Token_Generation.yaml](src/openapi/I_PoPP_Token_Generation.yaml)  
+  Interface from a PoPP-Client to a PoPP-Service,
+  this interface is used to create a PoPP-Token by the PoPP-Service and
+  transfer the PoPP-Token to the PoPP-Client.
 
 ## Release 1.0.0
+
 - Description of the interface between component "PoPP26-Service" on one hand
   and a Konnektor on the other hand for the purpose of sending arbitrary
-  ISO/IEC 7816-4 command APDU to a smartcard available in an eHealth-Cardterminal
+  ISO/IEC 7816-4 command APDU to a smartcard available in an
+  eHealth-Cardterminal
   connected to the Konnektor.
