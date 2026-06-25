@@ -11,7 +11,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "version": "1.0.0",
+    "version": "1.1.0",
     "summary": "API for importing entries into \"eGK-Hash-Datenbank\""
   },
   "servers": [
@@ -34,6 +34,40 @@
   ],
   "paths": {
     "/api/v1/hash-db/import": {
+      "get": {
+        "tags": [
+          "eGK HashDB Import"
+        ],
+        "summary": "Gets all jobs for the current user",
+        "operationId": "getJobs",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetJobsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoppProblemDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "mTLS": []
+          }
+        ]
+      },
       "post": {
         "tags": [
           "eGK HashDB Import"
@@ -351,6 +385,18 @@
           },
           "path": {
             "type": "string"
+          }
+        }
+      },
+      "GetJobsResponse": {
+        "type": "object",
+        "properties": {
+          "jobIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },
