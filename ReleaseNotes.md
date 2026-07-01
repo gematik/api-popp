@@ -5,12 +5,20 @@
 <details>
   <summary>Table of Contents</summary>
   <ol>
+    <li><a href="#release-320">Release 3.2.0</a></li>
     <li><a href="#release-310">Release 3.1.0</a></li>
     <li><a href="#release-300">Release 3.0.0</a></li>
     <li><a href="#release-200">Release 2.0.0</a></li>
     <li><a href="#release-100">Release 1.0.0</a></li>
   </ol>
 </details>
+
+## Release 3.2.0
+
+Change interface
+[I_PoPP_EHC_CertHash_Import.json](src/openapi/I_PoPP_EHC_CertHash_Import.json)
+by adding a new functionality with which it is possible to request Job-IDs by a
+"Lieferant".
 
 ## Release 3.1.0
 
