@@ -27,6 +27,16 @@ The versioning policy of this project follows [Semantic Versioning v2.0.0][].
   </ol>
 </details>
 
+## Release 3.2.0
+
+Summary of changes in 3.2.0 compared to 3.1.0:
+
+1. changed:
+   1. interface
+      [I_PoPP_EHC_CertHash_Import.json](src/openapi/I_PoPP_EHC_CertHash_Import.json):  
+      a new functionality is added to ask the PoPP-Service for know Job-IDs of
+      the current "Lieferant"
+
 ## Release 3.1.0
 
 Summary of changes in 3.1.0 compared to 3.0.0:
@@ -34,6 +44,7 @@ Summary of changes in 3.1.0 compared to 3.0.0:
 1. added
    1. interface
       [I_PoPP_EHC_CertHash_Import.json](src/openapi/I_PoPP_EHC_CertHash_Import.json)
+
 ## Release 3.0.0
 
 Summary of changes in release 3.0.0 compared to 2.0.0:
