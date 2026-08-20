@@ -1,0 +1,287 @@
+asyncapi: 3.0.0
+info:
+  title: Mobile Check-in PoPP-Token Generation WebSocket API
+  version: 1.0.0
+  description: |
+    WebSocket interface for generating PoPP-Tokens during an online check-in.
+    The business function and payload data correspond to the REST endpoint
+    POST /popp/practitioner/api/v1/token-deliveries.
+
+    A client sends a token-delivery request as a JSON WebSocket message. The
+    server returns exactly one correlated success or error message. A connection
+    may carry multiple requests; requestId correlates every response with its
+    request.
+
+  contact:
+    name: API Support
+
+  license:
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+defaultContentType: application/json
+
+servers:
+  production:
+    host: popp.example.de
+    protocol: wss
+    pathname: /popp/practitioner/api/v1/token-deliveries
+    description: |
+      Secure WebSocket endpoint. The connection is established with an HTTP GET
+      upgrade request. The x-useragent header is mandatory during this handshake.
+    bindings:
+      ws:
+        method: GET
+        headers:
+          type: object
+          required:
+            - x-useragent
+          properties:
+            x-useragent:
+              $ref: '#/components/schemas/UserAgentSchema'
+        bindingVersion: 0.1.0
+
+channels:
+  tokenDeliveries:
+    address: /popp/practitioner/api/v1/token-deliveries
+    description: |
+      Bidirectional WebSocket channel for requesting and receiving PoPP-Tokens.
+      Each client request receives one server response with the same requestId.
+    messages:
+      tokenRequest:
+        $ref: '#/components/messages/TokenRequest'
+      tokenResponse:
+        $ref: '#/components/messages/TokenResponse'
+      errorResponse:
+        $ref: '#/components/messages/ErrorResponse'
+
+operations:
+  receiveTokenRequest:
+    action: receive
+    summary: Receive a PoPP-Token generation request
+    description: |
+      The client sends a request containing its Telematik-ID, optionally one or
+      more workplace IDs, and the maximum number of PoPP-Tokens to collect.
+    tags:
+      - name: fetch Popp Token
+    channel:
+      $ref: '#/channels/tokenDeliveries'
+    messages:
+      - $ref: '#/channels/tokenDeliveries/messages/tokenRequest'
+
+  sendTokenResponse:
+    action: send
+    summary: Send the result of a PoPP-Token generation request
+    description: |
+      The server sends either the collected PoPP-Tokens or a business/error
+      response. Both responses contain the requestId of the triggering request.
+    tags:
+      - name: fetch Popp Token
+    channel:
+      $ref: '#/channels/tokenDeliveries'
+    messages:
+      - $ref: '#/channels/tokenDeliveries/messages/tokenResponse'
+      - $ref: '#/channels/tokenDeliveries/messages/errorResponse'
+
+components:
+  messages:
+    TokenRequest:
+      name: tokenRequest
+      title: PoPP-Token generation request
+      summary: Request PoPP-Tokens for pending PoPP data records.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TokenRequestSchema'
+      examples:
+        - name: workplaceName
+          summary: Request for a human-readable workplace ID
+          payload:
+            requestId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+            telematikId: 1-SMC-B-Testkarte--88311000016875
+            workplaceIds:
+              - Arbeitsplatz 1
+            limit: 1
+        - name: workplaceUuid
+          summary: Request for a UUID-like workplace ID
+          payload:
+            requestId: 9421f238-7d5b-43a4-9d20-faf4ec9d438d
+            telematikId: 1-SMC-B-Testkarte--88311000016875
+            workplaceIds:
+              - 019f4c0e-da55-7d3b-93e6-543c7aa723bd
+            limit: 100
+
+    TokenResponse:
+      name: tokenResponse
+      title: PoPP-Token generation response
+      summary: Contains generated PoPP-Tokens and the continuation indicator.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TokenResponseSchema'
+      examples:
+        - name: tokensPresent
+          summary: PoPP-Tokens were found and delivered
+          payload:
+            requestId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+            popptokens:
+              - token: eyJraWQiOiIwMDEyMDA1OTAwMDEwMDAxIiwidHlwIjoidm5kLnRlbGVtYXRpay5wb3BwK2p3dCIsImFsZyI6IkVTMjU2In0.eyJ2ZXJzaW9uIjoiMS4wLjAifQ.signature
+                workplaceId: Arbeitsplatz 1
+                poppStatusRecordId: 237cc7b7-f85e-42c3-981c-ad7f9d97ddca
+            hasMore: false
+        - name: noTokensPresent
+          summary: No pending PoPP data record was found
+          payload:
+            requestId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+            popptokens: []
+            hasMore: false
+
+    ErrorResponse:
+      name: errorResponse
+      title: Error response
+      summary: Indicates that the request could not be processed.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ErrorResponseSchema'
+      examples:
+        - name: malformedRequest
+          summary: Invalid request payload
+          payload:
+            requestId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+            errorCode: malformedRequest
+        - name: noResource
+          summary: Requested resource was not found
+          payload:
+            requestId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+            errorCode: noResource
+        - name: internalError
+          summary: Unexpected server error
+          payload:
+            requestId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+            errorCode: internalError
+
+  schemas:
+    UserAgentSchema:
+      description: |
+        Client software information sent as the x-useragent HTTP header in the
+        WebSocket upgrade request: ClientId (1–20 characters), slash, and a
+        version number (1–15 characters).
+      type: string
+      pattern: '^[a-zA-Z0-9-]{1,20}/[a-zA-Z0-9-.]{1,15}$'
+      examples:
+        - CLIENTID1234567890AB/2.1.12-45
+
+    RequestIdSchema:
+      description: Client-generated identifier used to correlate a response with its request.
+      type: string
+      format: uuid
+      examples:
+        - 3fa85f64-5717-4562-b3fc-2c963f66afa6
+
+    TelematikIdSchema:
+      description: Telematik-ID of a healthcare institution.
+      type: string
+      examples:
+        - 1-SMC-B-Testkarte--88311000016875
+
+    WorkplaceIdSchema:
+      description: Identifier of a workplace in a healthcare institution.
+      type: string
+      pattern: '^[^/:*?"<>|]{1,64}$'
+      examples:
+        - Arbeitsplatz 1
+        - 019f4c0e-da55-7d3b-93e6-543c7aa723bd
+
+    PoppStatusRecordIdSchema:
+      description: ID of the message record containing check-in status information.
+      type: string
+      format: uuid
+      examples:
+        - 237cc7b7-f85e-42c3-981c-ad7f9d97ddca
+
+    TokenRequestSchema:
+      description: |
+        Request for generating PoPP-Tokens from pending PoPP data records for a
+        Telematik-ID and, optionally, selected workplace IDs.
+      type: object
+      additionalProperties: false
+      required:
+        - requestId
+        - telematikId
+        - limit
+      properties:
+        requestId:
+          $ref: '#/components/schemas/RequestIdSchema'
+        telematikId:
+          $ref: '#/components/schemas/TelematikIdSchema'
+        workplaceIds:
+          description: Workplace identifiers to filter pending PoPP data records. Omit to query all workplaces.
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/WorkplaceIdSchema'
+        limit:
+          description: Maximum number of PoPP-Tokens to collect in this request.
+          type: integer
+          minimum: 1
+          maximum: 100
+          examples:
+            - 1
+            - 100
+
+    TokenResponseSchema:
+      description: Result of a successfully processed token request.
+      type: object
+      additionalProperties: false
+      required:
+        - requestId
+        - popptokens
+        - hasMore
+      properties:
+        requestId:
+          $ref: '#/components/schemas/RequestIdSchema'
+        popptokens:
+          description: Generated PoPP-Tokens with their associated workplace and status record IDs.
+          type: array
+          items:
+            $ref: '#/components/schemas/PoppTokenSchema'
+        hasMore:
+          type: boolean
+          description: |
+            True if additional pending PoPP data records are available for the
+            Telematik-ID after the requested limit was reached; otherwise false.
+
+    PoppTokenSchema:
+      type: object
+      additionalProperties: false
+      required:
+        - token
+        - poppStatusRecordId
+      properties:
+        token:
+          type: string
+          description: PoPP-Token encoded as a JWT (JSON Web Token) string.
+        workplaceId:
+          $ref: '#/components/schemas/WorkplaceIdSchema'
+        poppStatusRecordId:
+          $ref: '#/components/schemas/PoppStatusRecordIdSchema'
+
+    ErrorResponseSchema:
+      description: Error object for a request that could not be processed.
+      type: object
+      additionalProperties: false
+      required:
+        - requestId
+        - errorCode
+      properties:
+        requestId:
+          $ref: '#/components/schemas/RequestIdSchema'
+        errorCode:
+          description: Error condition specifier; corresponds to the REST API error codes.
+          type: string
+          enum:
+            - malformedRequest
+            - noResource
+            - internalError
+        errorDetail:
+          description: Additional details regarding the error condition, if applicable.
+          type: string

@@ -1,0 +1,146 @@
+openapi: 3.2.0
+info:
+  title: Anbieter-App - mobile Check-In
+  description: |
+    API for implementing an application using mobile check-in functions from the
+    PoPP-Module app.  
+    The API is called by the PoPP-Module after the online check-in is completed
+    to transfer the results.
+  # afi, Frage: I_PoPP_Modul_mobile_CheckIn.yaml enthält in der info-description
+  #             Aussagen zu ZETA, warum fehlen die hier?
+
+  contact:
+    name: gematik GmbH
+    url: 'https://www.gematik.de'
+
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+  version: 0.0.1
+
+  # version history:
+  # ----------------
+  # version 0.0.1
+  #   - initial version for review
+
+# afi, Frage: I_PoPP_Modul_mobile_CheckIn.yaml enthält einen Abschnitt "servers",
+#             warum fehlt der hier?
+
+tags:
+  - name: Mobile Check-in callback
+    description: |
+      Interface for calling back the provider app from PoPP-Modul after online
+      check-in.
+
+externalDocs:
+  description: 'Specification: gemSpec_PoPP_Modul'
+  url: https://gemspec.gematik.de/docs/gemSpec/
+
+paths:
+  /popp/mobile/api/v1/checkin/callback:
+    post:
+      tags:
+        - Mobile Check-in callback
+      requestBody:
+        description: |
+          Interface for calling back the provider app from the PoPP-Module after
+          online check-in.  
+          The request transmits the status of the PoPP-Token creation process to
+          the provider app.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoppStatusRecordIdSchema'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/OkResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+
+components:
+
+  responses:
+    OkResponse200:
+      description: |
+        HttpStatus.OK (200) 
+
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error404NotFound:
+      description: HttpStatus.NOT_FOUND (404)
+      content:
+        application/json:
+          example:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+
+    Error500InternalError:
+      description: HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+  schemas:
+    StatusPoPPTokenGenerationSchema:
+      description: |
+        The PoPP-Service sends status information regarding PoPP-Token generation.
+      type: object
+      properties:
+        state:
+          $ref: '#/components/schemas/StateSchema'
+        poppStatusRecordId:
+          $ref: '#/components/schemas/PoppStatusRecordIdSchema'
+    # afi, Frage 1: Wo wird StatusPoPPTokenGenerationSchema in dieser Datei verwendet?
+    # afi, Frage 2: Wenn StatusPoPPTokenGenerationSchema in dieser Datei nicht
+    #               verwendet wird, sollte es dann hier gelöscht werden?
+
+    StateSchema:
+      description: the status of PoPP-Token generation
+      type: string
+      enum:
+        - pending
+        - success
+        - canceled
+
+    PoppStatusRecordIdSchema:
+      description: |
+        ID of the message record containing the check-in status information
+      type: string
+      format: uuid
+      example: "237cc7b7-f85e-42c3-981c-ad7f9d97ddca"
+
+    ErrorSchema:
+      description: |
+        error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: |
+            error condition specifier
+          type: string
+        errorDetail:
+          description: |
+            additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode

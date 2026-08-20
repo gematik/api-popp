@@ -20,12 +20,26 @@ The versioning policy of this project follows [Semantic Versioning v2.0.0][].
 <details>
   <summary>Table of Contents</summary>
   <ol>
+    <li><a href="#release-330">Release 3.3.0</a></li>
+    <li><a href="#release-320">Release 3.2.0</a></li>
     <li><a href="#release-310">Release 3.1.0</a></li>
     <li><a href="#release-300">Release 3.0.0</a></li>
     <li><a href="#release-200">Release 2.0.0</a></li>
     <li><a href="#release-100">Release 1.0.0</a></li>
   </ol>
 </details>
+
+## Release 3.3.0
+
+Summary of changes in 3.3.0 compared to 3.2.0:
+
+1. added:
+   1. additional interfaces for mobile check in, in particular:
+      1. [I_AnbieterApp_mobile_CehckIn.yaml](src/openapi/I_AnbieterApp_mobile_CheckIn.yaml)
+      2. [I_PoPP_Modul_mobile_CheckIn.yaml](src/openapi/I_PoPP_Modul_mobile_CheckIn.yaml)
+      3. [I_PoPP_Service_mobile_CheckIn.yaml](src/openapi/I_PoPP_Service_mobile_CheckIn.yaml)
+      4. [I_PoPP_Service_mobile_CheckIn_EHC.yaml](src/openapi/I_PoPP_Service_mobile_CheckIn_EHC.yaml)
+      5. [I_PoPP_Service_mobile_Token_Generation.yaml](src/openapi/I_PoPP_Service_mobile_Token_Generation.yaml)
 
 ## Release 3.2.0
 

@@ -1,0 +1,283 @@
+openapi: 3.2.0
+info:
+  title: PoPP-Modul - mobile Check-In
+  description: |
+    PoPP-Modul API for mobile Check-in operations.
+    Communication between PoPP-Modul and PoPP-Service does not occur directly.
+    All communication goes through ZETA components.
+
+  contact:
+    name: gematik GmbH
+    url: 'https://www.gematik.de'
+
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+  version: 0.0.1
+
+  # version history:
+  # ----------------
+  # version 0.0.1
+  #   - initial version for review
+
+servers:
+  - url: https://gsi-ref.dev.gematik.solutions
+    description: GSI-Reference environment for testing and development
+# afi, Frage: Warum werden hier nur Test und Entwicklung angegeben, nicht aber PU?
+
+tags:
+  - name: Mobile Check-in
+    description: interface for calling the PoPP-Module for mobile check-in
+  - name: Update Check-in status
+    description: Interface for calling the PoPP-Module for a status query regarding mobile check-in
+
+externalDocs:
+  description: 'Specification: gemSpec_PoPP_Modul'
+  url: https://gemspec.gematik.de/docs/gemSpec/
+
+paths:
+  /popp/mobile/api/v1/checkin:
+    post:
+      tags:
+        - Mobile Check-in
+      requestBody:
+        description: |
+          Interface for calling the PoPP-Module for mobile check-in.
+          After checking the Telematik-ID or performing a FHIR-VZD search, 
+          the PoPP-Module uses the PoPP-Service to carry out the steps to 
+          create a PoPP-Token.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckInRequestSchema'
+            example:
+              telematikId: "1-SMC-B-Testkarte--883110000168757"
+              workplaceId:
+                - "Arbeitsplatz 1"
+                - "019f4c0e-da55-7d3b-93e6-543c7aa723bd"
+
+      responses:
+        '202':
+          $ref: '#/components/responses/AcceptedResponse202'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+      security:
+        - bearerAuthHealthId: [ ]
+
+  /popp/mobile/api/v1/status-query:
+    get:
+      tags:
+        - Update Check-in status
+      description: |
+        Interface for querying the status of PoPP-Token generation.  
+        The PoPP-Module sends a request to the PoPP-Service asking for the 
+        current status of PoPP-Token generation. 
+        The PoPP-Module returns the current status in a callback URL.
+
+      parameters:
+        - $ref: '#/components/parameters/useragent'
+        - $ref: '#/components/parameters/poppStatusRecordId'
+        - $ref: '#/components/parameters/callBackAppURL'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/AcceptedResponse202'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+      security:
+        - bearerAuthHealthId: [ ]
+
+components:
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        $ref: '#/components/schemas/UserAgentSchema'
+
+    callBackAppURL:
+      name: callBackAppURL
+      in: query
+      description: |
+        The URL is called by the PoPP-Module to send the result of the check-in
+        status query to the calling app.
+      required: true
+      schema:
+        $ref: '#/components/schemas/callBackAppURLSchema'
+
+    poppStatusRecordId:
+      name: poppStatusRecordId
+      in: query
+      description: ID of the message record containing the check-in status information
+      required: true
+      schema:
+        $ref: '#/components/schemas/PoppStatusRecordIdSchema'
+
+  responses:
+    AcceptedResponse202:
+      description: |
+        HttpStatus.ACCEPTED (202) 
+
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error404NotFound:
+      description: HttpStatus.NOT_FOUND (404)
+      content:
+        application/json:
+          example:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+
+    Error500InternalError:
+      description: HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+  schemas:
+    UserAgentSchema:
+      description: |
+        Information about client software with:
+        ClientId(20 characters) + / + VersionNumber (1 to 15 characters).
+      type: string
+      pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
+      examples: [ CLIENTID1234567890AB/2.1.12-45 ]
+
+    CheckInRequestSchema:
+      description: |
+        Schema for generating PoPP-Tokens from all PoPP data records in
+        "pending" status for a Telematik-ID and an (optional) workplace ID. 
+        The number of PoPP-Tokens to be generated is limited.
+      type: object
+      oneOf:
+        - required:
+            - telematikId
+        - required:
+            - fhirVzdSearchRequest
+      required: [ callBackAppURL ]
+      properties:
+        telematikId:
+          $ref: '#/components/schemas/TelematikIdSchema'
+
+        workplaceId:
+          $ref: '#/components/schemas/WorkplaceIdSchema'
+
+        fhirVzdSearchRequest:
+          $ref: '#/components/schemas/FhirVzdSearchRequestSchema'
+
+        callBackAppURL:
+          $ref: '#/components/schemas/callBackAppURLSchema'
+
+        loginMethod:
+          $ref: '#/components/schemas/loginMethodSchema'
+
+    TelematikIdSchema:
+      description: Telematik-ID of a healthcare institution
+      type: string
+      example: "1-SMC-B-Testkarte--883110000168757"
+
+    WorkplaceIdSchema:
+      description: Schema of the WorkplaceID of a ehealth institution
+      type: string
+      pattern: '^[^\/:*?"<>|]{1,64}$'
+      examples:
+        name:
+          value: "Arbeitsplatz 1"
+          summary: a human readable workplace ID
+        uuid:
+          value: "019f4c0e-da55-7d3b-93e6-543c7aa723bd"
+          summary: a UUID like workplace ID
+
+    PoppStatusRecordIdSchema:
+      description: |
+        ID of the message record containing the check-in status information
+      type: string
+      format: uuid
+      example: "237cc7b7-f85e-42c3-981c-ad7f9d97ddca"
+
+    FhirVzdSearchRequestSchema:
+      description: FHIR-VZD request to retrieve data on a healthcare company.
+      type: string
+      format: uri
+      example: 'https://fhir-directory-ref.vzd.ti-dienste.de/search/HealthcareService?organization.active=true&identifier=https://gematik.de/fhir/sid/telematik-id%7C1-2arvtst-ap000052'
+
+    callBackAppURLSchema:
+      description: The URL is called by the PoPP-Module to send the check-in result to the calling app.
+      type: string
+      format: uri
+      example: "https://myapp.com/callback/checkin"
+
+    loginMethodSchema:
+      description: "Determination of the login method for the user. loginMethod *ehealthCard* and *eudiWallet* not yet supported."
+      type: string
+      enum:
+        - ehealthId
+        - ehealthCard
+        - eudiWallet
+      examples: [ ehealthId ]
+
+
+
+        #  StatusPoPPTokenGenerationSchema:
+        #    description: |
+        #      The PoPP-Service sends status information regarding
+        #      PoPP-Token generation.
+        #    type: object
+        #    properties:
+        #      state:
+        #        description: The status of PoPP-Token generation
+        #        type: string
+        #        enum:
+        #          - pending
+        #          - success
+        #          - canceled
+        #      id:
+        #        description: ID of the message record containing the check-in status information
+        #        type: string
+        #        examples: [237cc7b7-f85e-42c3-981c-ad7f9d97ddca]
+
+    ErrorSchema:
+      description: Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode
+
+  securitySchemes:
+    bearerAuthHealthId:
+      description: ehealthId-check Access-Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

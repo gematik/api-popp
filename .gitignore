@@ -1,7 +1,7 @@
 # ignore IDE specific files
 .idea
 
-Synchronisation.md
+README_branches_and_synchronisation.md
 release.jenkinsfile
 gitHubPublish.jenkinsfile
 gitHubPull.jenkinsfile

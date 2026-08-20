@@ -1,0 +1,266 @@
+openapi: 3.2.0
+info:
+  title: Mobile Check-in search and PoPP-Token Generation API healthcare practitioners software
+  version: 1.0.0
+  description: |
+    This interface provides access to PoPP-Token Generation API to be used by 
+    health company systems (e.g. Primärsysteme).
+    It defines the request and response exchanged between the client and the
+    server to generate a PoPP-Token as part of an online check-in process. 
+
+tags:
+- name: fetch Popp Token
+  description: |
+    REST API for sending PoPP-Tokens from an online check-in to a health
+    company system (e.g. Primärsystem)   
+
+paths:
+  /popp/practitioner/api/v1/token-deliveries:
+    summary: Endpoint for PoPP-Token Generation after online check-in process
+    description: |
+      This endpoint is used by the client to initiate the generation of a
+      PoPP-Token using a PoPP data record being created during an online
+      check-in process.
+
+    post:
+      tags:
+      - fetch Popp Token
+      requestBody:
+        description: | 
+          The content contains the Telematik-ID and optionally a workplace ID, 
+          for which all PoPP data records with the status "pending" are to be 
+          determined and generated from the PoPP-Tokens. 
+          The number of PoPP-Tokens to be generated is limited.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequestSchema'
+            examples:
+              name:
+                summary: human readable workplace ID
+                telematikId: "1-SMC-B-Testkarte--88311000016875"
+                workplaceIds: "Arbeitsplatz 1"
+                limit: 1
+              uuid:
+                summary: a UUID like workplace ID
+                telematikId: "1-SMC-B-Testkarte--88311000016875"
+                workplaceIds: "019f4c0e-da55-7d3b-93e6-543c7aa723bd"
+                limit: 100
+
+      parameters:
+        - $ref: '#/components/parameters/useragent'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/CheckInResponse200'
+        '400':
+          $ref: '#/components/responses/Error400BadRequest'
+        '404':
+          $ref: '#/components/responses/Error404NotFound'
+        '500':
+          $ref: '#/components/responses/Error500InternalError'
+
+
+components:
+  parameters:
+    useragent:
+      name: x-useragent
+      in: header
+      description: user agent information
+      required: true
+      schema:
+        $ref: '#/components/schemas/UserAgentSchema'
+
+  responses:
+    CheckInResponse200:
+      description: |
+        The response is an array of objects. Every entry contains 
+        a base64-encoded PoPP-Token and the corresponding workplace ID.  
+        If no PoPP record in "pending" status is found for the Telematik-ID 
+        (and optionally the workplace ID), an empty array is returned.    
+        
+        An example for the payload of the PoPP-Token:  
+        "version": "1.0.0",  
+        "patientProofTime": 1783603061,  
+        "actorId": "1-SMC-B-Testkarte--883110000168757",  
+        "actorProfessionOid": "1.2.276.0.76.4.50",  
+        "proofMethod": "ehc-practitioner-trustedchannel",  
+        "patientId": "X110540756",  
+        "insurerId": "109500968",  
+        "iat": 1783603062,  
+        "iss": "https://popp.test.poppservice.de"  
+
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TokenResponseSchema'
+
+    Error400BadRequest:
+      description: HttpStatus.BAD_REQUEST (400)
+      content:
+        application/json:
+          example:
+            errorCode: malformedRequest
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error404NotFound:
+      description: HttpStatus.NOT_FOUND (404)
+      content:
+        application/json:
+          example:
+            errorCode: noResource
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+    Error500InternalError:
+      description:  HttpStatus.INTERNAL_SERVER_ERROR (500)
+      content:
+        application/json:
+          example:
+            errorCode: internalError
+          schema:
+            $ref: '#/components/schemas/ErrorSchema'
+
+  schemas:
+    UserAgentSchema:
+      description: "Information about client software with: ClientId(20 characters) + / + VersionNumber (1 to 15 characters)."
+      type: string
+      pattern: '^[a-zA-Z0-9\-]{1,20}\/[a-zA-Z0-9\-\.]{1,15}$'
+      example: [CLIENTID1234567890AB/2.1.12-45]
+
+    TokenRequestSchema:
+      description: |
+        Schema for generating PoPP-Tokens from all PoPP data records in
+        "pending" status for a Telematik-ID and Workplace ID (optional). 
+        The number of PoPP-Tokens to be generated is limited.
+      type: object
+      required: [telematikId, limit]
+      properties:
+        telematikId:
+          $ref: '#/components/schemas/TelematikIdSchema'
+
+        workplaceIds:
+          description: |
+            List of workplace identifiers of the healthcare institution for
+            which PoPP-Tokens should be collected.
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkplaceIdSchema'
+
+        limit:
+          description: | 
+            maximum number of PoPP-Tokens to be collected per request
+          type: integer
+          minimum: 1
+          maximum: 100
+          examples:
+            min:
+              value 1:
+              summary: minimum value
+            max:
+              value 100:
+              summary: maximum value
+
+    TelematikIdSchema:
+      description: Telematik-ID of a healthcare institution
+      type: string
+      examples: "1-SMC-B-Testkarte--883110000168757"
+
+    WorkplaceIdSchema:
+      description: Schema of the WorkplaceID of a ehealth institution
+      type: string
+      pattern: '^[^\/:*?"<>|]{1,64}$'
+      examples:
+        name:
+          value: "Arbeitsplatz 1"
+          summary: a human readable workplace ID
+        uuid:
+          value: "019f4c0e-da55-7d3b-93e6-543c7aa723bd"
+          summary: a UUID like workplace ID
+
+    PoppStatusRecordIdSchema:
+      description: |
+        ID of the message record containing the check-in status information
+      type: string
+      format: uuid
+      example: "237cc7b7-f85e-42c3-981c-ad7f9d97ddca"
+
+    # Response of an array of PoPP-Tokens and workplace IDs.
+    # Each token is a JWT with headers and claims.
+    # Workplace ID are strings.
+    TokenResponseSchema:
+      type: object
+      properties:
+        popptokens:
+            type: array
+            items:
+              required:
+                - token
+                - poppStatusRecordId
+              properties:
+                token:
+                  type: string
+                  description: |
+                    The PoPP-Token as a JWT (JSON Web Token) string.
+                    The JWT consists of three parts: headers, claims, and
+                    signature.
+
+                workplaceId:
+                  type: string
+                  description: |
+                    The workplace ID of the workstation where the PoPP-Token was generated.
+
+                poppStatusRecordId:
+                  $ref: '#/components/schemas/PoppStatusRecordIdSchema'
+
+        hasmore:
+          type: boolean
+          description: If, after reaching the limit of PoPP-Tokens to be sent, 
+              further PoPP data records with the status "pending" are available 
+              for the Telematik-ID, this is indicated by "hasMore=true". 
+              Otherwise, hasMore is "false".
+
+      examples:
+        tokenPresent:
+          summary: some PoPP-Token present
+          popptokens:
+            - token: eyJraWQiOiIwMDEyMDA1OTAwMDEwMDAxIiwidHlwIjoidm5kLnRlbGVtYXRpay5wb3BwK2p3dCIsImFsZy
+                     I6IkVTMjU2In0.eyJ2ZXJzaW9uIjoiMS4wLjAiLCJwYXRpZW50UHJvb2ZUaW1lIjoxNzgzNjAzMDYxLCJh
+                     Y3RvcklkIjoiMS1TTUMtQi1UZXN0a2FydGUtLTg4MzExMDAwMDE2ODc1NyIsImFjdG9yUHJvZmVzc2lvbk
+                     9pZCI6IjEuMi4yNzYuMC43Ni40LjUwIiwicHJvb2ZNZXRob2QiOiJlaGMtcHJhY3RpdGlvbmVyLXRydXN0
+                     ZWRjaGFubmVsIiwicGF0aWVudElkIjoiWDExMDU0MDc1NiIsImluc3VyZXJJZCI6IjEwOTUwMDk2OSIsIm
+                     lhdCI6MTc4MzYwMzA2MiwiaXNzIjoiaHR0cHM6Ly9wb3BwLnRlc3QucG9wcHNlcnZpY2UuZGUifQ.l0wGH
+                     Jzz1HfwOSv-rG5IeZC6m7npQkCJEdXFDig_FNjLIi44OwyIv5RjWFqpjp72VEk1JwaAXiBKJV-lt00j-w
+              workplaceId: Arbeitsplatz 1
+              poppStatusRecordId: 237cc7b7-f85e-42c3-981c-ad7f9d97ddca
+            - token: eyJraWQiOiIwMDEyMDA1OTAwMDEwMDAxIiwidHlwIjoidm5kLnRlbGVtYXRpay5wb3BwK2p3dCIsImFsZy
+                     I6IkVTMjU2In0.eyJ2ZXJzaW9uIjoiMS4wLjAiLCJwYXRpZW50UHJvb2ZUaW1lIjoxNzgzNjg2ODY2LCJh
+                     Y3RvcklkIjoiMS1TTUMtQi1UZXN0a2FydGUtLTg4MzExMDAwMDE2ODc1NyIsImFjdG9yUHJvZmVzc2lvbk
+                     9pZCI6IjEuMi4yNzYuMC43Ni40LjUwIiwicHJvb2ZNZXRob2QiOiJlaGMtcHJhY3RpdGlvbmVyLXRydXN0
+                     ZWRjaGFubmVsIiwicGF0aWVudElkIjoiWDExMDYzOTQ5MSIsImluc3VyZXJJZCI6IjEwOTUwMDk2OSIsIm
+                     lhdCI6MTc4MzY4Njg2NywiaXNzIjoiaHR0cHM6Ly9wb3BwLnRlc3QucG9wcHNlcnZpY2UuZGUifQ.1RJ0X
+                     gYrMHF0pM5Ean_-p8MYUU9SsM_NPcc6KCIXKOr6r8QM7p7SEvcziG33Z2pNI22Qcg9GSpE4taErk6nIpQ
+              workplaceId: Arbeitsplatz 2
+              poppStatusRecordId: 348dd8c8-f85e-42c3-981c-ad7f9d97ddca
+      tokenAbsent:
+        summary: no PoPP-Token present
+        value:
+          token: []
+          hasMore: false
+
+    ErrorSchema:
+      description: |
+        Error object with additional information about the occurred error
+      type: object
+      properties:
+        errorCode:
+          description: Error condition specifier
+          type: string
+        errorDetail:
+          description: |
+            Additional details regarding the error condition (if applicable)
+          type: string
+      required:
+        - errorCode
